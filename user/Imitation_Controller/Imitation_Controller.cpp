@@ -243,7 +243,7 @@ void Imitation_Controller::locomotion_ctrl()
     iter_loco++;
 
     if (!is_safe ||
-        iter_loco * _controlParameters->controller_dt >= 4.0)
+        iter_loco * _controlParameters->controller_dt >= userParameters.max_loco_time)
     {
         passive_mode();
         return;

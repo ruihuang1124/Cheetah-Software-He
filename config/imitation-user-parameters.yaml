@@ -11,9 +11,9 @@ Swing_Kd_joint     : [0.2, 0.2, 0.2]
 Swing_height       : 0.15
 
 repeat             : 0
-max_loco_time      : 4.5
+max_loco_time      : 6.0
 max_settling_time  : 3.0
 ext_force_start_time  : 1.75
 ext_force_number    : 1
-ext_force_mag         : 0.4
+ext_force_mag         : 0.0
 MSDDP                 : 1
