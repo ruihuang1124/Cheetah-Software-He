@@ -3,7 +3,7 @@
 
 echo "------------Running CTRL m s------------"
 
-CTRL_env='/home/jnganga/Desktop/Cheetah-Software-He/build/'
+CTRL_env='/home/lab/Desktop/Cheetah-Software/build/'
 cd "$CTRL_env"
 ./user/MHPC_LLController/mhpc_llctrl m s &
 CTRL_PID=$!

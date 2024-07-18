@@ -212,6 +212,7 @@ private:
     float udp_data_recv[12]; // qd_fly for fly1 and fly2
 
     bool RbtnotSafe = false;
+    bool use_fly_wheels = true; 
 
 
 };

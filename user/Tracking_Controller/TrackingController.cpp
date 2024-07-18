@@ -308,23 +308,11 @@ void Tracking_Controller::locomotion_ctrl()
 
             _flyController->commands[fly].qdDes = qdDes_fly;
 
-            
-            _flyController->commands[fly].kpJoint = KpMat_joint(0,0); 
-            _flyController->commands[fly].kdJoint = KdMat_joint(0,0);
+        
+            _flyController->commands[fly].kpJoint = KpMat_joint(0,0) ; 
+            _flyController->commands[fly].kdJoint = KdMat_joint(0,0) ;
+        
         }
-        else{
-             _flyController->commands[fly].tauFeedForward = 0.0f; 
-            _flyController->commands[fly].qDes = 0.0f; 
-            _flyController->commands[fly].qdDes = 0.0f;
-            _flyController->commands[fly].kpJoint = 0.0f;
-            _flyController->commands[fly].kdJoint = 0.0f; 
-
-            _flyController->datas[fly].tauAct  =  0.0; //udp_data_recv[fly];
-            _flyController->datas[fly].q  =  0.0; //udp_data_recv[fly];
-            _flyController->datas[fly].qd  =  0.0; //udp_data_recv[fly];
-        }
-            
-    }
 
     
     publishTrackingInfo();

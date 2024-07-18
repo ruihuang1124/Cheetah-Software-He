@@ -3,7 +3,7 @@
 
 echo "------------Running MHPC------------"
 
-MHPC_env='/media/jnganga/Internal Storage1/jnganga/MPCStack/build/'
+MHPC_env='/home/lab/Desktop/Nganga/MPCStack/build/'
 cd "$MHPC_env"
 ./MHPC/mhpc_run &
 RUNNING_PID=$!

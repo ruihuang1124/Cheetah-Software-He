@@ -159,7 +159,7 @@ void FlyController<T>::updateCommand(FlyCommand* flyCommand) {
         commands[fly].kdJoint * (commands[fly].qdDes - datas[fly].qd);
 
     
-    //Ngangan TAG  -- this is not necessary
+    //Nganga TAG  -- this is not necessary
     flyCommand->flags[fly] = _flysEnabled ? 1 : 0;
 
   }

@@ -345,7 +345,7 @@ void MHPC_LLController::locomotion_ctrl()
     Mat3<float> KpMat_joint = userParameters.Kp_joint.cast<float>().asDiagonal();
     Mat3<float> KdMat_joint = userParameters.Kd_joint.cast<float>().asDiagonal();
 
-    // bool use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
+    use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
     
     updateStateEstimate();        
     
@@ -458,7 +458,8 @@ void MHPC_LLController::locomotion_ctrl()
     }
 
     for (int fly = 0; fly < 2; fly++){ 
-        if (use_fly_wheels){
+        // if (use_fly_wheels){
+        if (true){
           
             const auto& tau_ff_fly = tau_ff.tail<2>(); 
             const auto& qDes_fly   = qJ_des.tail<2>(); 
@@ -470,8 +471,8 @@ void MHPC_LLController::locomotion_ctrl()
 
             _flyController->commands[fly].qdDes = qdDes_fly[fly]; 
 
-            _flyController->commands[fly].kpJoint = KpMat_joint(0,0); 
-            _flyController->commands[fly].kdJoint = KdMat_joint(0,0); 
+            _flyController->commands[fly].kpJoint = KpMat_joint(0,0) * 0.2; 
+            _flyController->commands[fly].kdJoint = KdMat_joint(0,0) * 0.2; 
                 
             // udp_data_recv_mutex.lock(); 
 
@@ -490,27 +491,25 @@ void MHPC_LLController::locomotion_ctrl()
 
             // udp_data_recv_mutex.unlock();
         }
-        else{
-            printf("\n Flywheel disabled"); 
-            _flyController->commands[fly].tauFeedForward = 0.0f; 
-            _flyController->commands[fly].qDes = 0.0f; 
-            _flyController->commands[fly].qdDes = 0.0f;
-            _flyController->commands[fly].kpJoint = 0.0f;
-            _flyController->commands[fly].kdJoint = 0.0f; 
+        // else{
+        //     printf("\n Flywheel disabled"); 
+        //     _flyController->commands[fly].tauFeedForward = 0.0f; 
+        //     _flyController->commands[fly].qDes = 0.0f; 
+        //     _flyController->commands[fly].qdDes = 0.0f;
+        //     _flyController->commands[fly].kpJoint = 0.0f;
+        //     _flyController->commands[fly].kdJoint = 0.0f; 
 
-            // udp_data_recv_mutex.lock(); 
+        //     // udp_data_recv_mutex.lock(); 
 
-            _flyController->datas[fly].tauAct  =  0.0; //udp_data_recv[fly];
-            _flyController->datas[fly].q  =  0.0; //udp_data_recv[fly];
-            _flyController->datas[fly].qd  =  0.0; //udp_data_recv[fly];
-            // _flyController->datas[fly].speedAct = udp_data_recv[2+fly];
+        //     // _flyController->datas[fly].tauAct  = udp_data_recv[fly];
+        //     // _flyController->datas[fly].speedAct = udp_data_recv[2+fly];
 
-            // _flyController->datas[fly].pwmTau = udp_data_recv[4+fly];
-            // _flyController->datas[fly].pwmSpeed = udp_data_recv[6+fly];
+        //     // _flyController->datas[fly].pwmTau = udp_data_recv[4+fly];
+        //     // _flyController->datas[fly].pwmSpeed = udp_data_recv[6+fly];
 
-            // udp_data_recv_mutex.unlock();
+        //     // udp_data_recv_mutex.unlock();
 
-        }
+        // }
 
     }
 
@@ -564,6 +563,7 @@ void MHPC_LLController::resolveMPCIfNeeded()
         std::copy(mpc_solution.GRF.begin(),mpc_solution.GRF.end(),mpc_data.GRF_MPC);
 
         mpc_data.robotFailed = RbtnotSafe; 
+        mpc_data.use_flywheels = use_fly_wheels; 
 
 
         mpc_data.mpctime = mpc_time;

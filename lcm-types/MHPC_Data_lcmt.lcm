@@ -9,5 +9,6 @@ struct MHPC_Data_lcmt {
     float eulrate[3];    
     float qJd[14];    
     boolean robotFailed; 
+    boolean use_flywheels;
     float GRF_MPC[12];
 }
