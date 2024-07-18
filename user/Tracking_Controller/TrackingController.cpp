@@ -313,7 +313,7 @@ void Tracking_Controller::locomotion_ctrl()
             _flyController->commands[fly].kdJoint = KdMat_joint(0,0) ;
         
         }
-
+    }
     
     publishTrackingInfo();
 

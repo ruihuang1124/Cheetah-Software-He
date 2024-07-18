@@ -128,7 +128,6 @@ public:
     int nsteps_between_mpc_node;
     bool is_loco_ctrl_initialized;    
     bool is_first_mpc_request_sent;
-    bool use_fly_wheels;
     
     // Desried states, control etc
     // Leg order and Joint convention follow the Pinocchio's parsing of MC URDF file
