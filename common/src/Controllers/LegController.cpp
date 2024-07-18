@@ -106,7 +106,7 @@ void LegController<T>::updateData(const SpiData* spiData) {
     if (leg==3)
     {
       datas[leg].q(1) = spiData->q_hip[leg] + 0.491;
-      datas[leg].q(2) = spiData->q_knee[leg] + 0.065;      
+      datas[leg].q(2) = spiData->q_knee[leg] + 0.11;      
     }
   #endif
 
@@ -206,7 +206,7 @@ void LegController<T>::updateCommand(SpiCommand* spiCommand) {
     if (leg==3)
     {
       spiCommand->q_des_hip[leg] = commands[leg].qDes(1)-0.491;
-      spiCommand->q_des_knee[leg] = commands[leg].qDes(2)-0.065;
+      spiCommand->q_des_knee[leg] = commands[leg].qDes(2)-0.11;
     }
   #endif
     

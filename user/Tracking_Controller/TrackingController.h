@@ -118,6 +118,9 @@ public:
     Vec14<float> qJ_se;
     Vec14<float> qJd_se;
     Eigen::Vector<float, 40> x_se;
+
+    bool use_fly_wheels;
+
     
     // Swing Control
     bool firstStance[4];

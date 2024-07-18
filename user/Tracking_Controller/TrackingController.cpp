@@ -51,6 +51,9 @@ Tracking_Controller::Tracking_Controller() :
     }
     
 
+    use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
+
+
     in_standup = false;
     desired_command_mode = CONTROL_MODE::estop;
     
@@ -155,11 +158,19 @@ void Tracking_Controller::runController()
         desired_command_mode = static_cast<int>(_controlParameters->control_mode);
     }
 
+    use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
+
+
     _legController->_maxTorque = 150;
     _legController->_legsEnabled = true;
 
     _flyController->_maxTorque = 2.0 * 7.5; 
     _flyController->_flysEnabled = true; 
+
+    // if (~use_fly_wheels)
+    // {
+    //     _flyController->_flysEnabled = false;
+    // }
 
     switch (desired_command_mode)
     {
@@ -183,6 +194,9 @@ void Tracking_Controller::locomotion_ctrl()
 {
     Mat3<float> KpMat_joint = userParameters.Kp_joint.cast<float>().asDiagonal();
     Mat3<float> KdMat_joint = userParameters.Kd_joint.cast<float>().asDiagonal();
+
+    // bool use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
+
     
     updateStateEstimate();            
    
@@ -282,21 +296,34 @@ void Tracking_Controller::locomotion_ctrl()
     }
 
     for (int fly = 0; fly < 2; fly++){
-
-        const auto& tau_ff_fly = tau_ff[12 + fly]; 
-        const auto& qDes_fly = qJ_des[12 + fly]; 
-        const auto& qdDes_fly = qJd_des[12 + fly]; 
-
-        _flyController->commands[fly].tauFeedForward = tau_ff_fly; 
-
-        _flyController->commands[fly].qDes = qDes_fly; 
-
-        _flyController->commands[fly].qdDes = qdDes_fly;
-
+        if (use_fly_wheels){
         
-        _flyController->commands[fly].kpJoint = KpMat_joint(0,0); 
-        _flyController->commands[fly].kdJoint = KdMat_joint(0,0);
-        
+            const auto& tau_ff_fly = tau_ff[12 + fly]; 
+            const auto& qDes_fly = qJ_des[12 + fly]; 
+            const auto& qdDes_fly = qJd_des[12 + fly]; 
+
+            _flyController->commands[fly].tauFeedForward = tau_ff_fly; 
+
+            _flyController->commands[fly].qDes = qDes_fly; 
+
+            _flyController->commands[fly].qdDes = qdDes_fly;
+
+            
+            _flyController->commands[fly].kpJoint = KpMat_joint(0,0); 
+            _flyController->commands[fly].kdJoint = KdMat_joint(0,0);
+        }
+        else{
+             _flyController->commands[fly].tauFeedForward = 0.0f; 
+            _flyController->commands[fly].qDes = 0.0f; 
+            _flyController->commands[fly].qdDes = 0.0f;
+            _flyController->commands[fly].kpJoint = 0.0f;
+            _flyController->commands[fly].kdJoint = 0.0f; 
+
+            _flyController->datas[fly].tauAct  =  0.0; //udp_data_recv[fly];
+            _flyController->datas[fly].q  =  0.0; //udp_data_recv[fly];
+            _flyController->datas[fly].qd  =  0.0; //udp_data_recv[fly];
+        }
+            
     }
 
     
@@ -317,9 +344,16 @@ void Tracking_Controller::updateStateEstimate()
     qJ_se.head<12>()  << legdatas[1].q, legdatas[0].q, legdatas[3].q, legdatas[2].q;
     qJd_se.head<12>() << legdatas[1].qd, legdatas[0].qd, legdatas[3].qd, legdatas[2].qd;
 
-    const auto& flydatas = _flyController->datas; 
-    qJ_se.tail<2>() << flydatas[0].q, flydatas[1].q;
-    qJd_se.tail<2>() << flydatas[0].qd, flydatas[1].qd;
+    const auto& flydatas = _flyController->datas;
+    if (use_fly_wheels){ 
+        qJ_se.tail<2>()  << flydatas[0].q  , flydatas[1].q ;
+        qJd_se.tail<2>() << flydatas[0].qd , flydatas[1].qd;
+    }
+    else {
+        qJ_se.tail<2>()  << 0.0,0.0;
+        qJd_se.tail<2>() << 0.0,0.0;
+    }
+
 
 
     x_se << se.position, eul_se, qJ_se, se.vWorld, eulrate_se, qJd_se;

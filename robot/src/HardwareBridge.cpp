@@ -317,9 +317,9 @@ void MiniCheetahHardwareBridge::run() {
       &taskManager, .002, "spi", &MiniCheetahHardwareBridge::runSpi, this);
   spiTask.start();
 
-  PeriodicMemberFunction<MiniCheetahHardwareBridge>  flyTask(
-      &taskManager, .002, "fly", &MiniCheetahHardwareBridge::runFly, this);
-  flyTask.start();
+  // PeriodicMemberFunction<MiniCheetahHardwareBridge>  flyTask(
+  //     &taskManager, .002, "fly", &MiniCheetahHardwareBridge::get_fly_data, this);
+  // flyTask.start();
 
   // microstrain
   if(_microstrainInit)
@@ -407,9 +407,9 @@ void MiniCheetahHardwareBridge::initHardware() {
   printf("[HardwareBridge] ---- Starting LCM for UDP CMDS ------ \n"); 
   if (!_UDPLCM.good()){
     initError("_UDPLCM failed to initialize\n", false);
-    _UDPLCM.subscribe("udp_data", &MiniCheetahHardwareBridge::get_fly_data, this); 
-
   }
+  _UDPLCM.subscribe("udp_data", &MiniCheetahHardwareBridge::get_fly_data, this); 
+
   _udpLcmThread = std::thread(&MiniCheetahHardwareBridge::getFlyData, this);
 
 }
@@ -448,16 +448,25 @@ void MiniCheetahHardwareBridge::runSpi() {
 
 //Hardware Bridge not needed to run flyBoard
 //Communicating over UDP socket. Ensure socket was successively made
-void MiniCheetahHardwareBridge::runFly() {
+// void MiniCheetahHardwareBridge::runFly() {
 
-  // fly_control_data_lcmt* data = get_fly_data(); 
-  // // memcpy(dest,src,size_t); 
-  // memcpy(&_flyData, data,sizeof(fly_control_data_lcmt));
-  // _flyLcm.publish("fly_data_debug", data); 
-  // get_fly_data();   
-  memcpy(&_flyData,&flyDataIntermediate,sizeof(FlyData)); 
-  memcpy(&_flyCommand,&flyCommandIntermediate,sizeof(FlyCommand)); 
-}
+//   // fly_control_data_lcmt* data = get_fly_data(); 
+//   // // memcpy(dest,src,size_t); 
+//   // memcpy(&_flyData, data,sizeof(fly_control_data_lcmt));
+//   // get_fly_data();   
+//   // std::cout << "flyData is " << _flyData.qd_fly[0] << " \n"; 
+//   memcpy(&_flyData,&flyDataIntermediate,sizeof(FlyData)); 
+//   memcpy(&_flyCommand,&flyCommandIntermediate,sizeof(FlyCommand)); 
+
+//   fly_control_data_lcmt* data; 
+//   for (int iFly=0; iFly < 2; iFly++)  {
+//     data->q[iFly] = _flyData.q_fly[iFly];
+//     data->qd[iFly] = _flyData.qd_fly[iFly];
+//   }
+
+//   _flyLcm.publish("fly_data_debug", data); 
+
+// }
 
 void  MiniCheetahHardwareBridge::get_fly_data(const lcm::ReceiveBuffer* rbuf,
                                       const std::string& chan,
@@ -465,11 +474,26 @@ void  MiniCheetahHardwareBridge::get_fly_data(const lcm::ReceiveBuffer* rbuf,
   (void)rbuf;
   (void)chan; 
   for (int iFly=0; iFly < 2; iFly++)  {
-    flyDataIntermediate.q_fly[iFly]         = 0.0; 
-    flyDataIntermediate.qd_fly[iFly]        = msg->speed_act[iFly];
-    flyCommandIntermediate.q_des_fly[iFly]  = msg->q_cmd[iFly];
-    flyCommandIntermediate.qd_des_fly[iFly] = msg->qd_cmd[iFly];
+
+    // _userControlParameters->collection.lookup(use_fly_wheels)
+    _flyData.tau_fly[iFly] = msg -> tau_act[iFly]; 
+    _flyData.q_fly[iFly]   = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002 * 0.02; 
+    _flyData.qd_fly[iFly]  = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002;
+
+    // flyDataIntermediate.q_fly[iFly]         = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002 * 0.02; 
+    // flyDataIntermediate.qd_fly[iFly]        = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002;
+    // flyCommandIntermediate.q_des_fly[iFly]  = msg->q_cmd[iFly];
+    // flyCommandIntermediate.qd_des_fly[iFly] = msg->qd_cmd[iFly];
+    // std::cout << "\n\n Set the data\n\n";
   }
+  // std::cout << "\n running get_fly_data" ; 
+  // fly_control_data_lcmt* data; 
+  // for (int iFly=0; iFly < 2; iFly++)  {
+  //   data->q[iFly] = _flyData.q_fly[iFly];
+  //   data->qd[iFly] = _flyData.qd_fly[iFly];
+  // }
+
+  // _flyLcm.publish("fly_data_debug", data); 
 }
 
 

@@ -62,6 +62,8 @@ MHPC_LLController::MHPC_LLController() :
         stanceTimesRemain[foot] = 0;
     }
 
+    use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
+
     // Creating the socket
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
@@ -292,11 +294,19 @@ void MHPC_LLController::runController()
         desired_command_mode = static_cast<int>(_controlParameters->control_mode);
     }
 
+    use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
+
+
     _legController->_maxTorque = 150;
     _legController->_legsEnabled = true;
 
     _flyController->_maxTorque = 2.0 *7.5;
     _flyController->_flysEnabled = true; 
+
+    // if (~use_fly_wheels)
+    // {
+    //     _flyController->_flysEnabled = false;
+    // }
 
     switch (desired_command_mode)
     {
@@ -335,7 +345,7 @@ void MHPC_LLController::locomotion_ctrl()
     Mat3<float> KpMat_joint = userParameters.Kp_joint.cast<float>().asDiagonal();
     Mat3<float> KdMat_joint = userParameters.Kd_joint.cast<float>().asDiagonal();
 
-    bool use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
+    // bool use_fly_wheels = static_cast<bool>(userParameters.use_fly_wheels); 
     
     updateStateEstimate();        
     
@@ -466,14 +476,16 @@ void MHPC_LLController::locomotion_ctrl()
             // udp_data_recv_mutex.lock(); 
 
             // //Data we need
-            // _flyController->datas[fly].tauAct   = udp_data_recv[fly];
-            // _flyController->datas[fly].speedAct = udp_data_recv[2+fly];
-            // //Data to verify out data 
-            // _flyController->datas[fly].pwmTau   = udp_data_recv[4+fly];
-            // _flyController->datas[fly].pwmSpeed = udp_data_recv[6+fly];
+            // float tau_rr   = udp_data_recv[fly]; 
+            // float speed = (tau_rr / (2519e-6) ) * 0.002; 
+            // _flyController->datas[fly].tauAct   = tau_rr;
+            // // _flyController->datas[fly].speedAct = udp_data_recv[2+fly];
+            // // //Data to verify out data 
+            // // _flyController->datas[fly].pwmTau   = udp_data_recv[4+fly];
+            // // _flyController->datas[fly].pwmSpeed = udp_data_recv[6+fly];
 
-            // _flyController->datas[fly].q =  0;  ///udp_data_recv[2+fly] * 0.10472 * _controlParameters->controller_dt; 
-            // _flyController->datas[fly].qd =  udp_data_recv[2+fly]; 
+            // _flyController->datas[fly].q =  speed * 0.02;  ///udp_data_recv[2+fly] * 0.10472 * _controlParameters->controller_dt; 
+            // _flyController->datas[fly].qd =  speed; // udp_data_recv[2+fly]; 
             // // _flyController->datas[fly].qd =  ( (udp_data_recv[fly] / 21.0f) * 1000 * 8.77)   * 0.10472;
 
             // udp_data_recv_mutex.unlock();
@@ -488,7 +500,9 @@ void MHPC_LLController::locomotion_ctrl()
 
             // udp_data_recv_mutex.lock(); 
 
-            // _flyController->datas[fly].tauAct  = udp_data_recv[fly];
+            _flyController->datas[fly].tauAct  =  0.0; //udp_data_recv[fly];
+            _flyController->datas[fly].q  =  0.0; //udp_data_recv[fly];
+            _flyController->datas[fly].qd  =  0.0; //udp_data_recv[fly];
             // _flyController->datas[fly].speedAct = udp_data_recv[2+fly];
 
             // _flyController->datas[fly].pwmTau = udp_data_recv[4+fly];
@@ -500,16 +514,29 @@ void MHPC_LLController::locomotion_ctrl()
 
     }
 
-    //q for fly1 and fly2
-    udp_data_sent[0] = qJ_des.tail<2>()[0];
-    udp_data_sent[1] = qJ_des.tail<2>()[1];
-    //qd for fly1 and fly2
-    udp_data_sent[2] = qJd_des.tail<2>()[0];
-    udp_data_sent[3] = qJd_des.tail<2>()[1]; 
-    //tau for fly1 and fly2
-    udp_data_sent[4] = -1.0 * tau_ff.tail<2>()[0]; // bc of mounting
-    udp_data_sent[5] = tau_ff.tail<2>()[1];
 
+    if (use_fly_wheels){
+        //q for fly1 and fly2
+        udp_data_sent[0] = qJ_des.tail<2>()[0];
+        udp_data_sent[1] = qJ_des.tail<2>()[1];
+        //qd for fly1 and fly2
+        udp_data_sent[2] = qJd_des.tail<2>()[0];
+        udp_data_sent[3] = qJd_des.tail<2>()[1]; 
+        //tau for fly1 and fly2
+        udp_data_sent[4] = 1.0 * tau_ff.tail<2>()[0]; // bc of mounting
+        udp_data_sent[5] = tau_ff.tail<2>()[1];
+    }else 
+    {
+        //q for fly1 and fly2
+        udp_data_sent[0] = 0.0; 
+        udp_data_sent[1] = 0.0; 
+        //qd for fly1 and fly2
+        udp_data_sent[2] = 0.0;
+        udp_data_sent[3] = 0.0; 
+        //tau for fly1 and fly2
+        udp_data_sent[4] = 0.0; // bc of mounting
+        udp_data_sent[5] = 0.0;
+    }
     
     iter_loco++;
     mpc_time = iter_loco * _controlParameters->controller_dt; // where we are since MPC starts
@@ -559,9 +586,16 @@ void MHPC_LLController::updateStateEstimate()
     qJ_se.head<12>()  << legdatas[1].q, legdatas[0].q, legdatas[3].q, legdatas[2].q;
     qJd_se.head<12>() << legdatas[1].qd, legdatas[0].qd, legdatas[3].qd, legdatas[2].qd;
 
-    const auto& flydatas = _flyController->datas; 
-    qJ_se.tail<2>()  << flydatas[0].q  , flydatas[1].q ;
-    qJd_se.tail<2>() << flydatas[0].qd , flydatas[1].qd;
+    const auto& flydatas = _flyController->datas;
+    if (use_fly_wheels){ 
+        qJ_se.tail<2>()  << flydatas[0].q  , flydatas[1].q ;
+        qJd_se.tail<2>() << flydatas[0].qd , flydatas[1].qd;
+    }
+    else {
+        qJ_se.tail<2>()  << 0.0,0.0;
+        qJd_se.tail<2>() << 0.0,0.0;
+    }
+
 
     // printf("flydatas[0].q, flydatas[1].q %f %f",flydatas[0].q, flydatas[1].q);
     // printf("flydatas[0].qd, flydatas[1].qd %f %f",flydatas[0].qd, flydatas[1].qd);
@@ -726,6 +760,7 @@ void MHPC_LLController::updateMPC_UDP()
             }
 
             udp_data_lcm.publish("udp_data", &udp_data); 
+            // std::cout << "published the data as " << udp_data.speed_act[0]; 
             udp_data_recv_mutex.unlock();
         
 
@@ -830,14 +865,13 @@ void MHPC_LLController::standup_ctrl_run()
         _flyController->commands[fly].kdJoint = Kd(0,0);
         
         // udp_data_recv_mutex.lock(); 
-
         // _flyController->datas[fly].tauAct   = udp_data_recv[fly];
         // _flyController->datas[fly].speedAct = udp_data_recv[2+fly];
         // _flyController->datas[fly].pwmTau   = udp_data_recv[4+fly];
         // _flyController->datas[fly].pwmSpeed = udp_data_recv[6+fly];
 
 
-        // _flyController->datas[fly].q  =  udp_data_recv[2+fly] * _controlParameters->controller_dt;
+        // _flyController->datas[fly].q  = 0.0;//  udp_data_recv[2+fly] * _controlParameters->controller_dt;
         // _flyController->datas[fly].qd =  udp_data_recv[2+fly] ;  // rpm * 0.10472 = rad/s
 
         // udp_data_recv_mutex.unlock();

@@ -131,7 +131,7 @@ void FlyController<T>::updateData(const FlyData* flyData) {
 template <typename T>
 void FlyController<T>::updateCommand(FlyCommand* flyCommand) {
 
-  for (int fly = 0; fly < 2; fly ++){
+  for (int fly = 0; fly < 2; fly++){
 
 
     T flyTorque = commands[fly].tauFeedForward;
