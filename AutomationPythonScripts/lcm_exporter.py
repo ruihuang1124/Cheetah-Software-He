@@ -13,9 +13,9 @@ USE_FLY_OPTIONS = {True,False}
 for USE_FLY in USE_FLY_OPTIONS:
 
     if USE_FLY:
-        path_fly_no_fly ="/media/jnganga/Internal Storage1/jnganga/GRF_Scoped/FLY"
+        path_fly_no_fly ="/media/lab/Seagate Expansion Drive/NewSimData_SameTime3Repeats/FLY"
     else:
-        path_fly_no_fly ="/media/jnganga/Internal Storage1/jnganga/GRF_Scoped/NOFLY"
+        path_fly_no_fly ="/media/lab/Seagate Expansion Drive/NewSimData_SameTime3Repeats/NOFLY"
 
     # Use os.scandir() to get an iterator of directory entries
     with os.scandir(path_fly_no_fly) as entries:

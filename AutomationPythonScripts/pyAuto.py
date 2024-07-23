@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+cd #!/usr/bin/env python3
 
 
 from concurrent.futures import process
@@ -28,9 +28,9 @@ USE_THREADS = True
 SIM_SPEED  = 1.0  
 recognition_confidence = 0.75
 
-REPEATS     = 10
+REPEATS     = 3 
 min_force   = 0 
-max_force   = 4.0
+max_force   = 3.2 
 frc_spacing = 0.2
 
 processes = []
@@ -115,15 +115,17 @@ def threads_alive():
 atexit.register(cleanup_processes)
 atexit.register(cleanup_threads)
 
+#Base Source -- Matters when you chane computers only 
+Base_CheetahSoftware = r'/home/lab/Desktop/Cheetah-Software'
 
 # Path to the simulator executable
-application_exec = r'/home/jnganga/Desktop/Cheetah-Software-He/build/sim/sim'
-application_env  = r'/home/jnganga/Desktop/Cheetah-Software-He/build'
+application_exec = Base_CheetahSoftware + r'/build/sim/sim'
+application_env  = Base_CheetahSoftware + r'/build'
 
 #Bash scripts to run CTRL,MHPC,LCMLOGGER
-CTRL_env_run = '/home/jnganga/Desktop/Cheetah-Software-He/build/runCTRL.sh'
-MHPC_env_run = '/home/jnganga/Desktop/Cheetah-Software-He/build/runMHPC.sh'
-LCMLOG_env_run = '/home/jnganga/Desktop/Cheetah-Software-He/build/runLCMLOG.sh'
+CTRL_env_run   = Base_CheetahSoftware + '/build/runCTRL.sh'
+MHPC_env_run   = Base_CheetahSoftware + '/build/runMHPC.sh'
+LCMLOG_env_run = Base_CheetahSoftware + '/build/runLCMLOG.sh'
 # Path to the Bash script
 ctrl_path = './../AutomationBashScripts/run_ctrl.sh'
 mhpc_path = './../AutomationBashScripts/run_mhpc.sh'
@@ -281,18 +283,19 @@ USE_FLY_OPTIONS = {True,False}
 #Activate the next few lines to do a full run 
 #------------------FROM HERE-------------------
 
-for i in range(len(force_x)):
-    for j in range(len(force_y)):
-        for USE_FLY in USE_FLY_OPTIONS:
-            for iRepeats in range(REPEATS):
+for iRepeats in range(REPEATS):
+    for i in range(len(force_x)):
+        for j in  range(len(force_y)):
 
-                #When the kick will be applied, we want it applied at same randomized for both fly and nofly
-                time_of_kick = random.uniform(2, 7)
+            #When the kick will be applied, we want it applied at same randomized for both fly and nofly
+            time_of_kick = random.uniform(2, 7)
 
+            for USE_FLY in USE_FLY_OPTIONS:
+                            
                 print(f"Are we using the FLYWHEEL: {USE_FLY}") 
 
-                _frc_x = 2.0 #FORCE_X[i,j]
-                _frc_y = 0.2 #FORCE_Y[i,j]
+                _frc_x = FORCE_X[i,j]
+                _frc_y = FORCE_Y[i,j]
 
                 #         print(f"Force applied will be (x,y) ({_frc_x},{_frc_y})")
                 #------------------TO HERE-------------------
@@ -409,12 +412,12 @@ for i in range(len(force_x)):
                 
                 
                 if USE_FLY:
-                    path_fly_no_fly ="/media/jnganga/Internal Storage1/jnganga/GRF_Scoped/FLY"
+                    path_fly_no_fly ="/media/lab/Seagate Expansion Drive/NewSimData_SameTime3Repeats/FLY"
                     file_name = "lcmlog_fx"+str(_frc_x)+"_fy"+str(float(_frc_y))+"_time"+str(time_of_kick)+"_fly"+random_string
 
                 else:
 
-                    path_fly_no_fly ="/media/jnganga/Internal Storage1/jnganga/GRF_Scoped/NOFLY"
+                    path_fly_no_fly ="/media/lab/Seagate Expansion Drive/NewSimData_SameTime3Repeats/NOFLY"
                     file_name = "lcmlog_fx"+str(_frc_x)+"_fy"+str(float(_frc_y))+"_time"+str(time_of_kick)+"_nofly"+random_string
 
                 lcmlog_proc = subprocess.Popen(['sh',lcmlog_path,path_fly_no_fly,file_name], start_new_session=False)
@@ -505,5 +508,11 @@ for i in range(len(force_x)):
 
 #LET'S DO THE LCM-EXPORT AND MV THE MATLAB FILES INTO THEIR OWN FOLDER
 file_path = './lcm_exporter.py'
+with open(file_path, 'r') as file:
+    exec(file.read())
+
+
+#LET'S Read the data
+file_path = './read_mat.py'
 with open(file_path, 'r') as file:
     exec(file.read())

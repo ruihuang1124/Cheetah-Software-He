@@ -477,8 +477,11 @@ void  MiniCheetahHardwareBridge::get_fly_data(const lcm::ReceiveBuffer* rbuf,
 
     // _userControlParameters->collection.lookup(use_fly_wheels)
     _flyData.tau_fly[iFly] = msg -> tau_act[iFly]; 
-    _flyData.q_fly[iFly]   = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002 * 0.02; 
-    _flyData.qd_fly[iFly]  = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002;
+    // Using the Tau data itself to get the speed of the flywheel
+    // _flyData.q_fly[iFly]   = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002 * 0.02; 
+    // _flyData.qd_fly[iFly]  = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002;
+    _flyData.q_fly[iFly] = 0.0f;
+    _flyData.qd_fly[iFly] = msg->speed_act[iFly];
 
     // flyDataIntermediate.q_fly[iFly]         = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002 * 0.02; 
     // flyDataIntermediate.qd_fly[iFly]        = ( msg->tau_act[iFly] / (2519e-6) ) * 0.002;

@@ -11,18 +11,16 @@ import json
 import itertools
 
 
-
-# MATLAB_env="/media/jnganga/Internal Storage1/jnganga/MC_SIM/MatlabData"
-
+Base_Path = "/media/lab/Seagate Expansion Drive/NewSimData_SameTime3Repeats"
 
 USE_FLY_OPTIONS = {True,False}
 
 for USE_FLY in USE_FLY_OPTIONS:
 
     if USE_FLY:
-        path_fly_no_fly ="/media/jnganga/Internal Storage1/jnganga/MC_SIM_MAY24_MOREDATA/FLY/MatlabData/"
+        path_fly_no_fly = Base_Path + "/FLY/MatlabData/"
     else:
-        path_fly_no_fly ="/media/jnganga/Internal Storage1/jnganga/MC_SIM_MAY24_MOREDATA/NOFLY/MatlabData/"
+        path_fly_no_fly = Base_Path + "/NOFLY/MatlabData/"
             
     force_x    = []
     force_y    = []
@@ -68,7 +66,9 @@ for USE_FLY in USE_FLY_OPTIONS:
                     # print(f"time_of_kick {time_of_kick}")
 
                     robotFailedSum = np.sum(rbtFailed)
-                    if robotFailedSum > 10: 
+                    print(f" {USE_FLY} sum rbtFailed {robotFailedSum}")
+
+                    if robotFailedSum > 250: 
                         robotFailed = 1
                     else:
                         robotFailed = 0
@@ -126,8 +126,8 @@ for USE_FLY in USE_FLY_OPTIONS:
     for frc_x, frc_y, rbtsf in zip(force_x, force_y, rbtsafe):
         frc_dict[(frc_x, frc_y)].append(rbtsf)
 
-    # print("frc_dict")
-    # print(frc_dict)
+    print("frc_dict")
+    print(frc_dict)
 
     
 
@@ -137,7 +137,7 @@ for USE_FLY in USE_FLY_OPTIONS:
         frc_x_unique.append(frc_x)
         frc_y_unique.append(frc_y)
         rbtsf_avg.append(np.mean(rbtsf_list))
-        # print(f"\n x {frc_x} y {frc_y} z {rbtsf_list}")
+        print(f"\n x {frc_x} y {frc_y} z {rbtsf_list} mean {np.mean(rbtsf_list)}")
     
     
     data = {
@@ -149,9 +149,9 @@ for USE_FLY in USE_FLY_OPTIONS:
         }
 
     if USE_FLY: 
-        data_file_path = "data_fly_May24"
+        data_file_path = Base_Path + "/data_fly_NewSim3Repeats"
     else: 
-        data_file_path = "data_NOfly_May24"
+        data_file_path = Base_Path + "/data_NOfly_NewSim3Repeats"
 
     with open(data_file_path, 'w') as file:
         json.dump(data, file)
@@ -163,6 +163,7 @@ for USE_FLY in USE_FLY_OPTIONS:
     print(f" robotsafe avg is  {rbtsf_avg}   ")
 
 
+    '''
     plt.figure()
     contour = plt.tricontourf(frc_x_unique, frc_y_unique, rbtsf_avg, levels=3, cmap='viridis')
     cbar = plt.colorbar(contour)
@@ -258,4 +259,4 @@ for USE_FLY in USE_FLY_OPTIONS:
     else:
         print("\n\nDone Processing files for NOFLY data")
 
-
+    '''

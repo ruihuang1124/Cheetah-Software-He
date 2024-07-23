@@ -7,6 +7,7 @@ import time
 import signal
 import threading
 from tkinter import E
+import random
 import json
 
 
@@ -96,8 +97,9 @@ if __name__ == "__main__":
 
     import numpy as np
 
+    REPEATS = 3
     min_force   = 0
-    max_force   = 4.0
+    max_force   = 3.2
     frc_spacing = 0.2
     # gridder(min_force,max_force,frc_spacing )
 
@@ -105,6 +107,9 @@ if __name__ == "__main__":
     # Create the meshgrid
     force_x = np.arange(min_force, max_force, frc_spacing)
     force_y = np.arange(min_force, max_force, frc_spacing)
+
+    print(len(force_x))
+    
     FORCE_X, FORCE_Y = np.meshgrid(force_x, force_y)
 
     # print(FORCE_X[18])
@@ -114,21 +119,26 @@ if __name__ == "__main__":
     USE_FLY_OPTIONS = {True,False}
     ifas = 0
     # print(len(force_x))
-    REPEATS = 10
-    for i in range(len(force_x)):
-        for j in range(len(force_y)):
-            for USE_FLY in USE_FLY_OPTIONS:
-                for iRepeats in range(REPEATS):
+    timed = 0 
+    for iRepeats in range(REPEATS):
+        for i in [0.2]: #range(len(force_x)):
+            for j in [0.4]:#range(len(force_y)):
 
-                    _frc_x = FORCE_X[i,j]
-                    _frc_y = FORCE_Y[i,j]
+                time_of_kick = random.uniform(2, 7)
+                for USE_FLY in USE_FLY_OPTIONS:
+
+                    _frc_x = i# FORCE_X[i,j]
+                    _frc_y = j #FORCE_Y[i,j]
                     ifas = ifas+1 
-                    print(f"iRepeat: {iRepeats} for {USE_FLY} with frc_x {_frc_x} frc_y {_frc_y}")
+                    timed = timed + 30
+                    print(f"iRepeat: {iRepeats} for {USE_FLY} with frc_x {_frc_x} frc_y {_frc_y} at time {time_of_kick}")
+                
 
 
     print(f"number %i",ifas)
+    print(f"Hours %f",timed / (3600)) 
 
-
+    exit()
 
     with open('data_fly_May24') as f:
         d = json.load(f)
