@@ -21,7 +21,7 @@ enum RC_MODE
     rc_locomotion = 3 // top right (estop) switch in bottom position
 };
 
-Imitation_Controller::Imitation_Controller() : mpc_cmds_lcm(getLcmUrl(255)), mpc_data_lcm(getLcmUrl(255))
+Imitation_Controller::Imitation_Controller() : mpc_cmds_lcm(getLcmUrl(255)), mpc_data_lcm(getLcmUrl(255)), rfmpc_data_lcm(getLcmUrl(255))
 {
     if (!mpc_cmds_lcm.good())
     {
@@ -34,6 +34,13 @@ Imitation_Controller::Imitation_Controller() : mpc_cmds_lcm(getLcmUrl(255)), mpc
     {
         printf(RED);
         printf("Failed to initialize lcm for mpc data \n");
+        printf(RESET);
+    }
+
+    if (!rfmpc_data_lcm.good())
+    {
+        printf(RED);
+        printf("Failed to initialize lcm for rfmpc data \n");
         printf(RESET);
     }
 
@@ -66,6 +73,9 @@ Imitation_Controller::Imitation_Controller() : mpc_cmds_lcm(getLcmUrl(255)), mpc
         pf[foot].setZero();
 
         pf_filter_buffer[foot].clear();
+    }
+    for (int i = 0; i < 4; ++i) {
+        mpc_control(i*3+2) = 20.0;
     }
 }
 void Imitation_Controller::initializeController()
@@ -325,6 +335,14 @@ void Imitation_Controller::update_mpc_if_needed()
         mpc_data.omegaBody[i] = se.omegaBody[i];
         mpc_data.vWorld[i] = se.vWorld[i];
         mpc_data.rpy[2] = yaw;
+        rfmpc_data.rpy[i] = se.rpy[i];
+        rfmpc_data.p[i] = se.position[i];
+        rfmpc_data.omegaBody[i] = se.omegaBody[i];
+        rfmpc_data.vWorld[i] = se.vWorld[i];
+        rfmpc_data.rpy[2] = yaw;
+        for (int j = 0; j < 3; ++j) {
+            rfmpc_data.rRobot[i][j] = se.rBody.transpose()(i,j);
+        }
     }
     for (int l = 0; l < 4; l++)
     {
@@ -337,9 +355,24 @@ void Imitation_Controller::update_mpc_if_needed()
         mpc_data.foot_placements[3 * l + 2] = pf[l][2];
 
         mpc_data.contact[l] = contactStatus[l];
+
+        rfmpc_data.qJ[3 * l] = _legController->datas[l].q[0];
+        rfmpc_data.qJ[3 * l + 1] = _legController->datas[l].q[1];
+        rfmpc_data.qJ[3 * l + 2] = _legController->datas[l].q[2];
+
+        rfmpc_data.foot_placements[3 * l] = pf[l][0];
+        rfmpc_data.foot_placements[3 * l + 1] = pf[l][1];
+        rfmpc_data.foot_placements[3 * l + 2] = pf[l][2];
+
+        rfmpc_data.contact[l] = contactStatus[l];
+        for (int i = 0; i < 3; ++i) {
+            rfmpc_data.f_current[l][i] = mpc_control(l*3+i);
+        }
     }
     mpc_data.mpctime = mpc_time;
+    rfmpc_data.mpctime = mpc_time;
     mpc_data_lcm.publish("mpc_data", &mpc_data);
+    rfmpc_data_lcm.publish("rfmpc_data", &rfmpc_data);
     printf(YEL);
     printf("sending a request for updating mpc\n");
     printf(RESET);

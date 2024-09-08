@@ -12,6 +12,7 @@
 #include <lcm/lcm-cpp.hpp>
 #include "hkd_command_lcmt.hpp"
 #include "hkd_data_lcmt.hpp"
+#include "hkd_rfmpc_data_lcmt.hpp"
 
 using std::deque;
 class Imitation_Controller : public RobotController
@@ -96,9 +97,11 @@ public:
 
     // LCM
     lcm::LCM mpc_data_lcm;
+    lcm::LCM rfmpc_data_lcm;
     lcm::LCM mpc_cmds_lcm;
     hkd_command_lcmt mpc_cmds;
     hkd_data_lcmt mpc_data;
+    hkd_rfmpc_data_lcmt rfmpc_data;
     std::mutex mpc_cmd_mutex;
     std::mutex mpc_data_mutex;
     std::thread mpcLCMthread;

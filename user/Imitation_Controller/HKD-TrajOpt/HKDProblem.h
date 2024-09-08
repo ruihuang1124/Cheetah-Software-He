@@ -82,7 +82,7 @@ public:
 
         pdata = pdata_in;
         reference = pdata->reference_ptr;
-        ref_data = pdata->ref_data_ptr;
+        ref_data = pdata->ref_data_ptr; // ref_data is set pointer here
     }
 
     void initialization();

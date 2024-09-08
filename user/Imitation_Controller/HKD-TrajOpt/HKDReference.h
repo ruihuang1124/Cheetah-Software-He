@@ -147,7 +147,7 @@ public:
     }
 
     // Shift the reference data forward by one time step
-    void step(){
+    void step(){ //
         // If the first phase reaches to the end, pop front the first phase
         if (data.horizons.front()<=1){
             data.pop_front();

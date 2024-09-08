@@ -14,9 +14,9 @@ using namespace std::placeholders; // predefined position placeholder for bind
 template <typename T>
 void HKDProblem<T>::initialization()
 {
-    deque<int> &horizons = ref_data->horizons;    
+    deque<int> &horizons = ref_data->horizons;  // the ref_date is the most important parameters we need.!!
     deque<VecM<int, 4>> &ctactSeq = ref_data->contactSeq;
-    int n_phases = ref_data->n_phases;
+    int n_phases = ref_data->n_phases; // see MPCSolver first set data in HKDProblem. the ref_data n_phases is set
     // check if the size of contactSeq greater
     if (n_phases >= ctactSeq.size())
     {
@@ -76,9 +76,9 @@ void HKDProblem<T>::update()
     
     for (int j = 0; j < nsteps_between_mpc; j++)
     {
-        reference->step();
+        reference->step();// ref_date is update here too!!!!
 
-        const auto &horizons = ref_data->horizons;
+        const auto &horizons = ref_data->horizons; // the ref_data in HKD will be update evertime
         const auto &ctactSeq = ref_data->contactSeq;
 
         auto& trajectories = pdata->trajectory_ptrs;
@@ -230,6 +230,28 @@ void HKDProblem<T>::print(){
     }
     printf("status durations \n");
     std::cout << ref_data->statusDuration.transpose() << std::endl;
+    printf("ref trajectory info is \n");
+    int xr_point_size = 0;
+    int ur_pint_size = 0;
+    for (int i = 0; i < ref_data->Xr.size(); ++i) {
+        xr_point_size += ref_data->Xr.at(i).size();
+    }
+    for (int i = 0; i < ref_data->Ur.size(); ++i) {
+        ur_pint_size += ref_data->Ur.at(i).size();
+    }
+    std::cout <<"Xr size is: "<<xr_point_size<<" with total phase: "<<ref_data->Xr.size()<<"\n";
+    for (int i = 0; i < ref_data->Xr.size(); ++i) {
+        for (int j = 0; j < ref_data->Xr.at(i).size(); ++j) {
+            std::cout <<"Xr roll angle value is: "<< ref_data->Xr.at(i).at(j)[0]<<" with phase "<< i+1 <<"\n";
+        }
+
+    }
+    std::cout <<"Ur size is: "<<ur_pint_size<<" with total phase: "<<ref_data->Ur.size()<<"\n";
+    for (int i = 0; i < ref_data->Ur.size(); ++i) {
+        for (int j = 0; j < ref_data->Ur.at(i).size(); ++j) {
+            std::cout <<"Ur z value for first leg is: "<< ref_data->Ur.at(i).at(j)[2]<<" with phase "<< i+1 <<"\n";
+        }
+    }
 }
 
 template<typename T>
