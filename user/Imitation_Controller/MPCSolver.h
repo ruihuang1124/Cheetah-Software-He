@@ -27,7 +27,7 @@ class MPCSolver
 public:
     MPCSolver() : mpc_lcm(getLcmUrl(255)), rfmpc_lcm(getLcmUrl(255))
     {
-        use_hkd_ = true;
+        use_hkd_ = false;
         // Setup reference
         string imitation_path = "../user/Imitation_Controller/PolicyRollout/";
         string contact_fname = imitation_path + "contact_post.csv";
@@ -48,6 +48,14 @@ public:
             printf("Failed to inialize mpc_lcm for hkd command\n");
             return;
         }
+
+        if (!rfmpc_lcm.good())
+        {
+            printf(RED);
+            printf("Failed to inialize rfmpc_lcm for hkd command\n");
+            return;
+        }
+
 
         if (use_hkd_){
             mpc_lcm.subscribe("mpc_data", &MPCSolver::mpcdata_lcm_handler, this);
@@ -70,7 +78,66 @@ public:
     void update();
     void update_foot_placement();
     void updateRFMPCSolver();
-    void updateReferenceTrajectoryForVBMPC();
+    void updateReferenceTrajectoryForVBMPC() {
+        //    printf("ref trajectory info is \n");
+        Xd_.setZero();
+        Ud_.setZero();
+        int point_index = 0;
+        int point_phase_accumulate_index = 0;
+        for (int i = 0; i < opt_problem_data.ref_data_ptr->Xr.size(); ++i) {
+            if (i >= 1) {
+                point_phase_accumulate_index += opt_problem_data.ref_data_ptr->Xr.at(i - 1).size();
+            }
+            for (int j = 0; j < opt_problem_data.ref_data_ptr->Xr.at(i).size(); ++j) {
+                point_index = point_phase_accumulate_index + j;
+//            std::cout << "xr_point_index is: " << point_index << " with phase " << i + 1 << "\n";
+                if (point_index < horizonLengthMPC_) {
+                    Eigen::Matrix<float, 3, 3> R_des(3, 3);
+                    R_des.setIdentity();
+                    float rpy_desired_input[3];
+                    for (int k = 0; k < 3; ++k) {
+                        rpy_desired_input[k] = opt_problem_data.ref_data_ptr->Xr.at(i).at(
+                                j)[k];// rpy, xyz, omega_xyz, v_xyz in Xr;
+                    }
+                    rpy_to_rotational_matrix_R(R_des, rpy_desired_input);
+                    for (int k = 0; k < 3; ++k) { // for Xd: xyz, v_xyz,  R_12, omega_xyz, pF_des(xyz1, xyz2, xyz3, xyz4)
+                        Xd_(k, point_index) = opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[k + 3];
+                        Xd_(k + 3, point_index) = opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[k + 9];
+                        for (int l = 0; l < 3; ++l) {
+                            Xd_(6 + k + l * 3, point_index) = R_des(k, l);  //
+                        }
+                        Xd_(15 + k, point_index) = opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[k + 6];
+                    }
+                    int num_contact_foot = 0;
+                    for (int k = 0; k < 4; ++k) {
+                        num_contact_foot += opt_problem_data.ref_data_ptr->contactSeq[i][k];
+                    }
+                    if (num_contact_foot == 0) {
+                        Ud_.col(point_index).setZero();
+                    } else {
+                        float ref_force_z = 80.0 / num_contact_foot;
+                        for (int k = 0; k < 4; ++k) {
+                            Ud_(2 + 3 * k, point_index) =
+                                    opt_problem_data.ref_data_ptr->contactSeq[i][switch_leg_index_from_left_to_right(k)] *
+                                    ref_force_z;
+                        }
+                    }
+//                std::cout << "Xd_ value is: " << Xd_.col(point_index).transpose() << " with phase " << i + 1
+//                          << "\n";
+//                std::cout << "Ref Ud_ value is:" << Ud_.col(point_index).transpose() << "\n";
+//                std::cout << "Contact status is: " << opt_problem_data.ref_data_ptr->contactSeq[i].transpose() << "\n";
+                } else {
+                    break;
+                }
+//            std::cout << "Xr roll angle value is: " << opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[0]
+//                      << " with phase " << i + 1 << "\n";
+            }
+            if (point_index >= horizonLengthMPC_) {
+                break;
+            }
+        }
+    }
+
     int switch_leg_index_from_left_to_right(int vbmpc_leg_index);
     void run(){
         if (use_hkd_){
@@ -132,10 +199,16 @@ template<typename T>
 void MPCSolver<T>::print_mc_state()
 {
     printf("***********mc state*************\n");
-    printf("eul = %f %f %f\n", hkd_data.rpy[2], hkd_data.rpy[1], hkd_data.rpy[0]);
-    printf("pos = %f %f %f\n", hkd_data.p[2], hkd_data.p[1], hkd_data.p[0]);
-    printf("omegaB = %f %f %f\n", hkd_data.omegaBody[2], hkd_data.omegaBody[1], hkd_data.omegaBody[0]);
-    printf("vWorld = %f %f %f\n\n", hkd_data.vWorld[2], hkd_data.vWorld[1], hkd_data.vWorld[0]);
+    printf("eul = %f %f %f\n", hkd_rfmpc_data.rpy[2], hkd_rfmpc_data.rpy[1], hkd_rfmpc_data.rpy[0]);
+    printf("pos = %f %f %f\n", hkd_rfmpc_data.p[2], hkd_rfmpc_data.p[1], hkd_rfmpc_data.p[0]);
+    printf("omegaB = %f %f %f\n", hkd_rfmpc_data.omegaBody[2], hkd_rfmpc_data.omegaBody[1], hkd_rfmpc_data.omegaBody[0]);
+    printf("vWorld = %f %f %f\n\n", hkd_rfmpc_data.vWorld[2], hkd_rfmpc_data.vWorld[1], hkd_rfmpc_data.vWorld[0]);
+    printf("rRobot = %f %f %f\n\n", hkd_rfmpc_data.rRobot[0][0], hkd_rfmpc_data.rRobot[0][1], hkd_rfmpc_data.rRobot[0][2]);
+    printf("rRobot = %f %f %f\n\n", hkd_rfmpc_data.rRobot[1][0], hkd_rfmpc_data.rRobot[1][1], hkd_rfmpc_data.rRobot[1][2]);
+    printf("rRobot = %f %f %f\n\n", hkd_rfmpc_data.rRobot[2][0], hkd_rfmpc_data.rRobot[2][1], hkd_rfmpc_data.rRobot[2][2]);
+
+    std::cout<<"current Xt is:"<<Xt_.transpose()<<"\n";
+    std::cout<<"current Ut is:"<<Ut_.transpose()<<"\n";
 
 //    printf("***********More Info about HKDProblem************\n");
 //    printf("number of phases = %lu, \n", opt_problem_data.ref_data_ptr->n_phases);

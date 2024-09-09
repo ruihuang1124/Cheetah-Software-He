@@ -500,7 +500,7 @@ void solve_vbmpc(const Matrix<float, 30, 1>& Xt, const Matrix<float, 12, 1>& Ut,
   //  std::cout << "number of equality Constraints is:" << A.rows() << "\n";
   myQP = QP_SETUP_dense(P.rows(), G.rows(), A.rows(), P.data(), A.data(), G.data(), c.data(), h.data(), b.data(), NULL,
                         COLUMN_MAJOR_ORDERING);
-  myQP->options->maxit = 100;
+  myQP->options->maxit = 10000;
   myQP->options->reltol = 1e-3;
   myQP->options->abstol = 1e-3;
   myQP->options->verbose = 0;

@@ -360,9 +360,9 @@ void Imitation_Controller::update_mpc_if_needed()
         rfmpc_data.qJ[3 * l + 1] = _legController->datas[l].q[1];
         rfmpc_data.qJ[3 * l + 2] = _legController->datas[l].q[2];
 
-        rfmpc_data.foot_placements[3 * l] = pf[l][0];
-        rfmpc_data.foot_placements[3 * l + 1] = pf[l][1];
-        rfmpc_data.foot_placements[3 * l + 2] = pf[l][2];
+        rfmpc_data.foot_placements[3 * l] = pFoot[l][0];
+        rfmpc_data.foot_placements[3 * l + 1] = pFoot[l][1];
+        rfmpc_data.foot_placements[3 * l + 2] = pFoot[l][2];
 
         rfmpc_data.contact[l] = contactStatus[l];
         for (int i = 0; i < 3; ++i) {

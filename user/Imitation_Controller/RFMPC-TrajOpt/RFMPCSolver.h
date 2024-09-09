@@ -2,8 +2,8 @@
 // Created by ray on 7/10/24.
 //
 
-#ifndef ARCDOG_SOFTWARE_MPCSOLVER_H
-#define ARCDOG_SOFTWARE_MPCSOLVER_H
+#ifndef ARCDOG_SOFTWARE_RFMPCSOLVER_H
+#define ARCDOG_SOFTWARE_RFMPCSOLVER_H
 #include <stdio.h>
 
 #include <eigen3/Eigen/Dense>
@@ -63,4 +63,4 @@ void cmpc_c2qp(Matrix<fpt, 13, 13> Ac, Matrix<fpt, 13, 12> Bc, fpt dt, s16 horiz
 mfp* get_cmpc_q_soln();
 mfp* get_vbmpc_q_soln();
 
-#endif  // ARCDOG_SOFTWARE_MPCSOLVER_H
+#endif  // ARCDOG_SOFTWARE_RFMPCSOLVER_H

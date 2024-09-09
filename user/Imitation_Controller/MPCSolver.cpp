@@ -300,37 +300,38 @@ void MPCSolver<T>::updateRFMPCSolver() {
     mpc_setup_problem(dt_rfmpc_, horizonLengthMPC_, 0.4, 180);
     /* update Xd and Ud from desired trajectory */
     opt_problem.update();
-//    print_mc_state();
 
     updateReferenceTrajectoryForVBMPC();
 
     /* update current state*/
-    eul << hkd_rfmpc_data.rpy[2], hkd_rfmpc_data.rpy[1], hkd_rfmpc_data.rpy[0];
-    pos << hkd_rfmpc_data.p[0], hkd_rfmpc_data.p[1], hkd_rfmpc_data.p[2];
-    vel << hkd_rfmpc_data.vWorld[0], hkd_rfmpc_data.vWorld[1], hkd_rfmpc_data.vWorld[2];
-    omega << hkd_rfmpc_data.omegaBody[0], hkd_rfmpc_data.omegaBody[1], hkd_rfmpc_data.omegaBody[2];
+//    eul << hkd_rfmpc_data.rpy[2], hkd_rfmpc_data.rpy[1], hkd_rfmpc_data.rpy[0];
+//    pos << hkd_rfmpc_data.p[0], hkd_rfmpc_data.p[1], hkd_rfmpc_data.p[2];
+//    vel << hkd_rfmpc_data.vWorld[0], hkd_rfmpc_data.vWorld[1], hkd_rfmpc_data.vWorld[2];
+//    omega << hkd_rfmpc_data.omegaBody[0], hkd_rfmpc_data.omegaBody[1], hkd_rfmpc_data.omegaBody[2];
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             rRobot(i, j) = hkd_rfmpc_data.rRobot[i][j];
         }
     }
 
-    const auto &current_pf = hkd_data.foot_placements;
+    const auto &current_pf = hkd_rfmpc_data.foot_placements;
     for (int l = 0; l < 4; l++) {
         pf[l] << current_pf[3 * l], current_pf[3 * l + 1], current_pf[3 * l + 2];
     }
     for (int i = 0; i < 3; ++i) {
-        Xt_(i, 0) = pos[i];
-        Xt_(i + 3, 0) = vel[i];
+        Xt_(i, 0) = hkd_rfmpc_data.p[i];
+        Xt_(i + 3, 0) = hkd_rfmpc_data.vWorld[i];
         for (int j = 0; j < 3; ++j) {
             Xt_(6 + i + j * 3, 0) = rRobot(i, j);
         }
-        Xt_(15 + i, 0) = omega[i];
+        Xt_(15 + i, 0) = hkd_rfmpc_data.omegaBody[i];
         for (int j = 0; j < 4; ++j) {
             Xt_(18 + i + j * 3, 0) = pf[switch_leg_index_from_left_to_right(j)][i];//TODO, check if right.
             Ut_(i + j * 3, 0) = hkd_rfmpc_data.f_current[switch_leg_index_from_left_to_right(j)][i];
         }
     }
+
+//    print_mc_state();
     /* build solver and solve the TO problem */
     update_vbmpc_problem_data_float_latest(Xt_, Ut_, Xd_, Ud_, weights_Q, weights_Qf, weights_R, alpha);
     update_foot_placement();
@@ -350,12 +351,12 @@ void MPCSolver<T>::rfmpcdata_lcm_handler(const lcm::ReceiveBuffer *rbuf, const s
     printf(RESET);
 
 
-    std::memcpy(&hkd_rfmpc_data, msg, sizeof(hkd_data));
+    std::memcpy(&hkd_rfmpc_data, msg, sizeof(hkd_rfmpc_data));
     mpc_time_prev = mpc_time;
-    mpc_time = hkd_data.mpctime;
+    mpc_time = hkd_rfmpc_data.mpctime;
 
     // get the current foot placements
-    const auto &current_pf = hkd_data.foot_placements;
+    const auto &current_pf = hkd_rfmpc_data.foot_placements;
     for (int l = 0; l < 4; l++) {
         pf[l] << current_pf[3 * l], current_pf[3 * l + 1], current_pf[3 * l + 2];
     }
@@ -397,6 +398,7 @@ void MPCSolver<T>::publish_rfmpc_cmd() {
             hkd_cmds.contacts[k][l] = ctactSeq[i][l];
             hkd_cmds.statusTimes[k][l] = statusDuration(l, i);
         }
+        std::cout<<"calculated hkdcmd.hkd_controls is"<<hkd_cmds.hkd_controls[k]<<"\n";
         s++;
         k++;
     }
@@ -411,70 +413,9 @@ void MPCSolver<T>::publish_rfmpc_cmd() {
     printf(RESET);
 }
 
-template<typename T>
-void MPCSolver<T>::updateReferenceTrajectoryForVBMPC() {
-    printf("ref trajectory info is \n");
-    Xd_.setZero();
-    Ud_.setZero();
-    int point_index = 0;
-    int point_phase_accumulate_index = 0;
-    for (int i = 0; i < opt_problem_data.ref_data_ptr->Xr.size(); ++i) {
-        point_index = 0;
-        if (i >= 1) {
-            point_phase_accumulate_index += opt_problem_data.ref_data_ptr->Xr.at(i - 1).size();
-        }
-        for (int j = 0; j < opt_problem_data.ref_data_ptr->Xr.at(i).size(); ++j) {
-            point_index = point_phase_accumulate_index + j;
-//            std::cout << "xr_point_index is: " << point_index << " with phase " << i + 1 << "\n";
-            if (point_index < horizonLengthMPC_) {
-                Eigen::Matrix<float, 3, 3> R_des(3, 3);
-                R_des.setIdentity();
-                float rpy_desired_input[3];
-                for (int k = 0; k < 3; ++k) {
-                    rpy_desired_input[k] = opt_problem_data.ref_data_ptr->Xr.at(i).at(
-                            j)[k];// rpy, xyz, omega_xyz, v_xyz in Xr;
-                }
-                rpy_to_rotational_matrix_R(R_des, rpy_desired_input);
-                for (int k = 0; k < 3; ++k) { // for Xd: xyz, v_xyz,  R_12, omega_xyz, pF_des(xyz1, xyz2, xyz3, xyz4)
-                    Xd_(k, point_index) = opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[k + 3];
-                    Xd_(k + 3, point_index) = opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[k + 9];
-                    for (int l = 0; l < 3; ++l) {
-                        Xd_(6 + k + l * 3, point_index) = R_des(i, j);  //
-                    }
-                    Xd_(15 + k, point_index) = opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[k + 6];
-                }
-                int num_contact_foot = 0;
-                for (int k = 0; k < 4; ++k) {
-                    num_contact_foot += opt_problem_data.ref_data_ptr->contactSeq[i][k];
-                }
-                if (num_contact_foot == 0) {
-                    Ud_.col(point_index).setZero();
-                } else {
-                    float ref_force_z = 80.0 / num_contact_foot;
-                    for (int k = 0; k < 4; ++k) {
-                        Ud_(2 + 3 * k, point_index) =
-                                opt_problem_data.ref_data_ptr->contactSeq[i][switch_leg_index_from_left_to_right(k)] *
-                                ref_force_z;
-                    }
-                }
-//                std::cout << "Xd_ vx value is: " << Xd_(3, point_index) << " with phase " << i + 1
-//                          << "\n";
-//                std::cout << "Contact status is: " << opt_problem_data.ref_data_ptr->contactSeq[i].transpose() << "\n";
-//                std::cout << "Ref Ud_ value is:" << Ud_.col(point_index).transpose() << "\n";
-            } else {
-                break;
-            }
-//            std::cout << "Xr roll angle value is: " << opt_problem_data.ref_data_ptr->Xr.at(i).at(j)[0]
-//                      << " with phase " << i + 1 << "\n";
-        }
-        if (point_index >= horizonLengthMPC_) {
-            break;
-        }
-    }
-}
 
 template<typename T>
-int MPCSolver<T>::switch_leg_index_from_left_to_right(int vbmpc_leg_index) {
+int MPCSolver<T>::switch_leg_index_from_left_to_right(int vbmpc_leg_index) {// in vbmpc, leg index starts from left while in our robot, leg index starts from right.
     int control_leg_index = 0;
     if (vbmpc_leg_index == 0) {        // 0 FL in vbmpc
         control_leg_index = 1;          // 1 FL in control loop
