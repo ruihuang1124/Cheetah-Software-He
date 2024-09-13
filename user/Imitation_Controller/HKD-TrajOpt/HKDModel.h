@@ -79,13 +79,16 @@ void compute_hkd_state(D1& eul, D1& pos,
         {
             T foot_id_T = static_cast<T>(l) + 1;
             // compute foot position for foot foot_id
+//            std::cout<<"here  foot id is: "<<foot_id_T<<"\n";
             VecM<T, 3> pf_T;
             vector<T *> arg_pos = {pos.data(), eul.data(), qleg.data(), &foot_id_T};
+//            vector<T *> arg_pos = {pos.data(), eul.data(), qleg.data()};
             vector<T *> res_pos = {pf_T.data()};
             casadi_interface(arg_pos, res_pos, pf_T.size(), compute_foot_position,
                              compute_foot_position_sparsity_out,
                              compute_foot_position_work);
             qdummy.segment(3 * l, 3) = pf_T;
+//            std::cout<<"calculated pf_T in model is: "<<pf_T.transpose()<<"\n";
         }
     }
 }

@@ -143,6 +143,7 @@ void HKDProblem<T>::create_problem_one_phase(shared_ptr<SinglePhase<T,24,24,0>> 
             touchdown_status[leg] = 1;
         }
     }
+//    std::cout<<"touchdown_status is: "<< touchdown_status<<"\n";
 
     /* specialize dynamics and resetmap  */
     auto dynamics_callback = bind(&HKDModel<T>::dynamics, &hkdModel,

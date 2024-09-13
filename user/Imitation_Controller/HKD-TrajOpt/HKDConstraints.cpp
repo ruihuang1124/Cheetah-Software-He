@@ -81,11 +81,13 @@ void TouchDownConstraint<T>::compute_violation(const State &x)
     pos = x.segment(3, 3);
     qdummy = x.tail(12);
 
+//    std::cout<<"this->size in HKDConstraints is:  dfd "<< this->size<<"\n";
     // iterate through all constraints
     for (int i = 0; i < this->size; i++)
     {
         int foot_id = impact_foot_ids[i];
         T foot_id_T = static_cast<T>(foot_id)+1;
+//        std::cout<<foot_id_T<<" leg is going to in contact for calculation jac\n";
 
         qleg = qdummy.segment(3 * foot_id, 3);
         vector<T *> arg_pos = {pos.data(), eul.data(), qleg.data(), &foot_id_T};
@@ -98,6 +100,7 @@ void TouchDownConstraint<T>::compute_violation(const State &x)
 
         // compute constraint violation
         this->data[i].h = pFoot[2] - ground_height;
+//        std::cout<<"calculated pFoot for foot: "<< foot_id <<" in constraints is: "<<pFoot.transpose()<<"\n";
 
         // compute foot Jacobian
         Jf.setZero();

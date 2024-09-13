@@ -55,6 +55,8 @@ void MPCSolver<T>::initialize() {
     compute_hkd_state(eul, pos, qJ, qdummy, c);
 
     xinit << body, qdummy;
+//    std::cout<<"initial contact seque is: \n"<<c<<"\n";
+//    std::cout<<"xinit is: \n"<<xinit<<"\n";
 
     // build the solver and solve the TO problem
     MultiPhaseDDP<T> solver;
@@ -227,8 +229,16 @@ void MPCSolver<T>::publish_mpc_cmd()
         {
             hkd_cmds.contacts[k][l] = ctactSeq[i][l];
             hkd_cmds.statusTimes[k][l] = statusDuration(l,i);
-        }        
-        
+        }
+//        std::cout << "desired contact seq is: " << hkd_cmds.contacts[k][0] << " " << hkd_cmds.contacts[k][1] << " "
+//                  << hkd_cmds.contacts[k][2] << " " << hkd_cmds.contacts[k][3] << "\n";
+//        std::cout << "calculated hkdcmd.hkd_controls is " << hkd_cmds.hkd_controls[k][0] << " "
+//                  << hkd_cmds.hkd_controls[k][1] << " " << hkd_cmds.hkd_controls[k][2] << " "
+//                  << hkd_cmds.hkd_controls[k][3] << " " << hkd_cmds.hkd_controls[k][4] << " "
+//                  << hkd_cmds.hkd_controls[k][5] << " " << hkd_cmds.hkd_controls[k][6] << " "
+//                  << hkd_cmds.hkd_controls[k][7] << " " << hkd_cmds.hkd_controls[k][8] << " "
+//                  << hkd_cmds.hkd_controls[k][9] << " " << hkd_cmds.hkd_controls[k][10] << " "
+//                  << hkd_cmds.hkd_controls[k][11] << " " << "\n";
         s++;
         k++;
     }
@@ -369,7 +379,7 @@ void MPCSolver<T>::rfmpcdata_lcm_handler(const lcm::ReceiveBuffer *rbuf, const s
 template<typename T>
 void MPCSolver<T>::publish_rfmpc_cmd() {
     int num_controls = mpc_config.nsteps_between_mpc;
-    num_controls += 6;     // use 6 more controls than control duration to account for delay
+    num_controls += 8;     // use 8 more controls than control duration to account for delay
     hkd_cmds.N_mpcsteps = num_controls;
     auto &XrSeq = opt_problem_data.ref_data_ptr;
     auto &ctactSeq = opt_problem_data.ref_data_ptr->contactSeq;
@@ -385,7 +395,8 @@ void MPCSolver<T>::publish_rfmpc_cmd() {
             Vec3<float> f_delta;
             Vec3<float> ut;
             for (int axis = 0; axis < 3; axis++) {
-                f_delta[axis] = get_vbmpc_solution(leg * 3 + axis);  // delta force from ground to leg in world frame
+                f_delta[axis] = get_vbmpc_solution(
+                        leg * 3 + axis + k * 24);  // delta force from ground to leg in world frame
                 ut[axis] = Ut_(leg * 3 + axis, 0);
             }
             f = f_delta + ut; // force from ground to leg in world frame
@@ -398,10 +409,17 @@ void MPCSolver<T>::publish_rfmpc_cmd() {
             hkd_cmds.contacts[k][l] = ctactSeq[i][l];
             hkd_cmds.statusTimes[k][l] = statusDuration(l, i);
         }
-        std::cout<<"calculated hkdcmd.hkd_controls is"<<hkd_cmds.hkd_controls[k]<<"\n";
+        std::cout << "calculated hkdcmd.hkd_controls is " << hkd_cmds.hkd_controls[k][0] << " "
+                  << hkd_cmds.hkd_controls[k][1] << " " << hkd_cmds.hkd_controls[k][2] << " "
+                  << hkd_cmds.hkd_controls[k][3] << " " << hkd_cmds.hkd_controls[k][4] << " "
+                  << hkd_cmds.hkd_controls[k][5] << " " << hkd_cmds.hkd_controls[k][6] << " "
+                  << hkd_cmds.hkd_controls[k][7] << " " << hkd_cmds.hkd_controls[k][8] << " "
+                  << hkd_cmds.hkd_controls[k][9] << " " << hkd_cmds.hkd_controls[k][10] << " "
+                  << hkd_cmds.hkd_controls[k][11] << " " << "\n";
         s++;
         k++;
     }
+
     for (int l = 0; l < 4; l++) {
         hkd_cmds.foot_placement[3 * l] = pf[l][0];
         hkd_cmds.foot_placement[3 * l + 1] = pf[l][1];

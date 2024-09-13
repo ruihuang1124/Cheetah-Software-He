@@ -69,6 +69,9 @@ void HKDReset<T>::resetmap(DVec<T> &xnext, DVec<T> &x, VecM<int, 4> &c, VecM<int
             VecM<T,3> cmap;
             cmap << 1,1,0;
             qdummy.segment(3 * l, 3) = cmap.asDiagonal() * pf;
+//            std::cout<<"calculated pf in reset is: "<<pf.transpose()<<"\n";
+//            std::cout<<"calculated pFoot for foot: "<< l <<" in reset is: "<<pf.transpose()<<"\n";
+
         }
     }
     xnext << x.head(12), qdummy;

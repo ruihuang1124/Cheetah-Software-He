@@ -392,6 +392,7 @@ void Imitation_Controller::get_a_val_from_solution_bag()
         {
             if (mpc_time < mpc_cmds.mpc_times[i + 1])
             {
+//                printf("Updating mpc command!!!!!!!!!!!!!! with step %d\n",i);
                 mpc_control = mpc_control_bag[i];
                 break;
             }

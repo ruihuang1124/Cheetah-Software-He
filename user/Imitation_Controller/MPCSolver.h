@@ -27,9 +27,12 @@ class MPCSolver
 public:
     MPCSolver() : mpc_lcm(getLcmUrl(255)), rfmpc_lcm(getLcmUrl(255))
     {
-        use_hkd_ = false;
+        use_hkd_ = true;
         // Setup reference
-        string imitation_path = "../user/Imitation_Controller/PolicyRollout/";
+        string imitation_path = "../user/Imitation_Controller/PolicyRollout/In-place-trot/A1/";
+//        string imitation_path = "../user/Imitation_Controller/PolicyRollout/left_turn_center/";
+//        string imitation_path = "../user/Imitation_Controller/PolicyRollout/";
+
         string contact_fname = imitation_path + "contact_post.csv";
         string state_fname = imitation_path + "state_post.csv";
         imitation_ref.load_contact_data(contact_fname);
