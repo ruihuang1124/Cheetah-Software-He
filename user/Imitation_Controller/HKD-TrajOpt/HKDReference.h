@@ -155,7 +155,7 @@ public:
             // printf("Xr[0] size = %lu \n", data.Xr[0].size());
             // printf("starttime = %f \n", data.startTimes.front());
             // printf("horizon = %i \n", data.horizons.front());
-            data.Xr[0].pop_front();
+            data.Xr[0].pop_front(); //[0] in here means the index of phase, then this data.Xr[0].pop_front() means pop the oldest x_ref of Xr in phase[0].
             data.Ur[0].pop_front();
             data.Yr[0].pop_front();
             data.startTimes.front()+=dt;

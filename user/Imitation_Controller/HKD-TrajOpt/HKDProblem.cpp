@@ -40,6 +40,9 @@ void HKDProblem<T>::initialization()
 
         shared_ptr<Trajectory<T,24,24,0>> traj;
         traj = make_shared<Trajectory<T,24,24,0>>(timeStep, horizons[i]);
+        // update initial nominal control sequence U_bar in traj_to_add with the value from traj_ref loding from high-level optimized traj, TODO
+//        traj->ref_data_ptr = pdata->ref_data_ptr; // ref_data with all phase
+//        traj->update_nominal_control_vals(i); // only current phase
         
         phase->set_trajectory(traj);      
 
@@ -94,15 +97,18 @@ void HKDProblem<T>::update()
         }
         else
         {
-            phases[0]->pop_front();
-            Xbar_prev[0].pop_front();
-            Ubar_prev[0].pop_front();
+            phases[0]->pop_front(); // not deque.pop_front!! the meaning of phases[0], see pop_front function definition in SinglePhase
+            Xbar_prev[0].pop_front(); // deque.pop_front
+            Ubar_prev[0].pop_front(); // deque.pop_front
         }
         // If trajectories is shorter than expected # phases, grow trajectories and phases by one
         if (trajectories.size() < ref_data->n_phases)
         {
             shared_ptr<Trajectory<T, 24, 24, 0>> traj_to_add;
             traj_to_add = make_shared<Trajectory<T, 24, 24, 0>>(timeStep, horizons.back());
+            // update initial nominal control sequence U_bar in traj_to_add with the value from traj_ref loding from high-level optimized traj, TODO
+//            traj_to_add->ref_data_ptr = pdata->ref_data_ptr; // ref_data with all phase
+//            traj_to_add->update_nominal_control_vals(ref_data->n_phases - 1); // only the last phase of ref_data.
 
             shared_ptr<SinglePhase<T, 24, 24, 0>> phase_to_add;
             phase_to_add = make_shared<SinglePhase<T, 24, 24, 0>>();             
@@ -118,7 +124,8 @@ void HKDProblem<T>::update()
         }
         else
         {
-            phases.back()->push_back();
+          phases.back()->push_back();
+//            phases.back()->push_back_non_all_zero();// U_bar in phases.back().traj will be updated here with the value from ref_data_ptr;
         }
     }
     for (auto phase : pdata->phase_ptrs)

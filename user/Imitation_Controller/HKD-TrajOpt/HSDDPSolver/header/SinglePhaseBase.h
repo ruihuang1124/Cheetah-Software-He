@@ -60,6 +60,8 @@ public:
 
     virtual void push_back() {}
 
+    virtual void push_back_non_all_zero() {}
+
     virtual void pop_front() {}
 
     virtual void reset_params() {}

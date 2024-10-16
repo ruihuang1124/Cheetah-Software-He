@@ -9,6 +9,7 @@
 #include <type_traits> // hearder for is_scalar()
 #include "HSDDP_CPPTypes.h"
 #include "CostBase.h"
+#include "HKDReference.h"
 
 using std::vector;
 using std::shared_ptr;
@@ -90,9 +91,11 @@ public:
     void zero_val_approx();
     void clear();
     void update_nominal_vals();
+    void update_nominal_control_vals(int phase);
 
     void pop_front();
     void push_back_zero();
+    void push_back_with_ref_control_vals_as_nominal();
     int size(){return Xbar.size();}
 
 public:
@@ -123,6 +126,7 @@ public:
 
     deque<RCostData<T, xs, us, ys>> rcostData;
     TCostData<T, xs> tcostData;
+    HKDReferenceData<T>* ref_data_ptr;
 };
 
 

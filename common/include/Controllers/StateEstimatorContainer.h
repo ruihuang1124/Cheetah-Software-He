@@ -29,6 +29,10 @@ struct StateEstimate {
   Vec3<T> omegaBody;
   RotMat<T> rBody;
   Vec3<T> rpy;
+    Vec3<T> foot_p1;
+    Vec3<T> foot_p2;
+    Vec3<T> foot_p3;
+    Vec3<T> foot_p4;
 
   Vec3<T> omegaWorld;
   Vec3<T> vWorld;
@@ -42,6 +46,10 @@ struct StateEstimate {
       lcm_data.rpy[i] = rpy[i];
       lcm_data.omegaBody[i] = omegaBody[i];
       lcm_data.omegaWorld[i] = omegaWorld[i];
+        lcm_data.foot_p1[i] = foot_p1[i];
+        lcm_data.foot_p2[i] = foot_p2[i];
+        lcm_data.foot_p3[i] = foot_p3[i];
+        lcm_data.foot_p4[i] = foot_p4[i];
     }
 
     for(int i = 0; i < 4; i++) {

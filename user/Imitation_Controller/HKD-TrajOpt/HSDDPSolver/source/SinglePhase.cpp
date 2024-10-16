@@ -101,7 +101,7 @@ T SinglePhase<T,xs,us,ys>::get_max_tconstrs()
 template <typename T, size_t xs, size_t us, size_t ys>
 void SinglePhase<T,xs,us,ys>::set_trajectory(shared_ptr<Trajectory<T,xs,us,ys>> traj_)
 {
-    traj = traj_;   
+    traj = traj_;
     update_trajectory_ptrs();
 }
 
@@ -125,6 +125,10 @@ void SinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool ca
         U->at(k) = Ubar->at(k) + eps * dU->at(k) + K->at(k) * (X->at(k) - Xbar->at(k));
         /* run dynamics */
         dynamics(X->at(k + 1), Y->at(k), X->at(k), U->at(k));
+//        if (k/multiple_shooting_steps_==0){
+//            X->at(k + 1) = X->at(k + 1) + d->at(k +1);
+//        }
+
         if (calc_partial)
         { // This flag is turned off when performing line search for speed up
             dynamics_partial(A->at(k), B->at(k), C->at(k), D->at(k), X->at(k), U->at(k));
@@ -353,6 +357,16 @@ template <typename T, size_t xs, size_t us, size_t ys>
 void SinglePhase<T,xs,us,ys>::push_back()
 {
     traj->push_back_zero();
+    constraintContainer.push_back_n(1);
+    phase_horizon = traj->horizon;
+}
+
+/*
+    @brief  Push back n (zero) elements to the trajectory and path constraints
+*/
+template <typename T, size_t xs, size_t us, size_t ys>
+void SinglePhase<T,xs,us,ys>::push_back_non_all_zero() {
+    traj->push_back_with_ref_control_vals_as_nominal();
     constraintContainer.push_back_n(1);
     phase_horizon = traj->horizon;
 }

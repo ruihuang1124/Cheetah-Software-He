@@ -13,68 +13,68 @@ public:
     {
         /* trotting cost */
         /* State weighting matrices */
-        // Qeul.setZero();
-        // Qpos.setZero();
-        // Qw.setZero();
-        // Qv.setZero();
-        // QqJ.setZero();
+         Qeul.setZero();
+         Qpos.setZero();
+         Qw.setZero();
+         Qv.setZero();
+         QqJ.setZero();
 
-        // Qeul.diagonal() << 10, 5, 5;
-        // Qpos.diagonal() << 0, 0, 20;
-        // Qw.diagonal() << .1, .1, .5;
-        // Qv.diagonal() << 4, 4, 10;
-        // QqJ.diagonal() << VecM<T, 3>::Constant(.5 * (1 - contact[0])),
-        //                 VecM<T, 3>::Constant(.5 * (1 - contact[1])),
-        //                 VecM<T, 3>::Constant(.5 * (1 - contact[2])),
-        //                 VecM<T, 3>::Constant(.5 * (1 - contact[3]));
-        // this->Q.topLeftCorner(3, 3) << Qeul;
-        // this->Q.block(3, 3, 3, 3) << Qpos;
-        // this->Q.block(6, 6, 3, 3) << Qw;
-        // this->Q.block(9, 9, 3, 3) << Qv;
-        // this->Q.bottomRightCorner(12, 12) << QqJ;
+         Qeul.diagonal() << 10, 5, 5;
+         Qpos.diagonal() << 0, 0, 20;
+         Qw.diagonal() << .1, .1, .5;
+         Qv.diagonal() << 4, 4, 10;
+         QqJ.diagonal() << VecM<T, 3>::Constant(.5 * (1 - contact[0])),
+                         VecM<T, 3>::Constant(.5 * (1 - contact[1])),
+                         VecM<T, 3>::Constant(.5 * (1 - contact[2])),
+                         VecM<T, 3>::Constant(.5 * (1 - contact[3]));
+         this->Q.topLeftCorner(3, 3) << Qeul;
+         this->Q.block(3, 3, 3, 3) << Qpos;
+         this->Q.block(6, 6, 3, 3) << Qw;
+         this->Q.block(9, 9, 3, 3) << Qv;
+         this->Q.bottomRightCorner(12, 12) << QqJ;
 
-        // /* Terminal state weighting matrix */
-        // VecM<T, 24> scale;
-        // scale << .5, .5, .5, 0, 0, 15, 1, .5, 1, 1, 1, 1, .5 * VecM<T, 12>::Ones();
-        // this->Qf = 20 * scale.asDiagonal() * this->Q;
+         /* Terminal state weighting matrix */
+         VecM<T, 24> scale;
+         scale << .5, .5, .5, 0, 0, 15, 1, .5, 1, 1, 1, 1, .5 * VecM<T, 12>::Ones();
+         this->Qf = 20 * scale.asDiagonal() * this->Q;
 
-        // /* Control weighting matrices */
-        // this->R.setZero();
-        // this->R.topLeftCorner(12, 12) = .2 * MatMN<T, 12, 12>::Identity();      // GRF
-        // this->R.bottomRightCorner(12, 12) = .5 * MatMN<T, 12, 12>::Identity();  // Commanded joint vel
+         /* Control weighting matrices */
+         this->R.setZero();
+         this->R.topLeftCorner(12, 12) = .2 * MatMN<T, 12, 12>::Identity();      // GRF
+         this->R.bottomRightCorner(12, 12) = .5 * MatMN<T, 12, 12>::Identity();  // Commanded joint vel
 
         /* pacing cost */
         /* State weighting matrices */
-        Qeul.setZero();
-        Qpos.setZero();
-        Qw.setZero();
-        Qv.setZero();
-        QqJ.setZero();
-
-        Qeul.diagonal() << 1, 5, 5;
-        Qpos.diagonal() << 0, 0, 15;
-        Qw.diagonal() << .2, .2, .2;
-        Qv.diagonal() << 4, 1, 4;
-        QqJ.diagonal() << 1*(1-contact[0]),1-contact[0],1-contact[0],
-                          1*(1-contact[1]),1-contact[1],1-contact[1],
-                          1*(1-contact[2]),1-contact[2],1-contact[2],
-                          1*(1-contact[3]),1-contact[3],1-contact[3];
-        QqJ = 0.1 * QqJ;
-        this->Q.topLeftCorner(3, 3) << Qeul;
-        this->Q.block(3, 3, 3, 3) << Qpos;
-        this->Q.block(6, 6, 3, 3) << Qw;
-        this->Q.block(9, 9, 3, 3) << Qv;
-        this->Q.bottomRightCorner(12, 12) << QqJ;
-
-        /* Terminal state weighting matrix */
-        VecM<T, 24> scale;
-        scale << 1, 1, 1, 0, 0, 15, 1, .5, 1, 1, 1, 1, .5 * VecM<T, 12>::Ones();
-        this->Qf = 20 * scale.asDiagonal() * this->Q;
-
-        /* Control weighting matrices */
-        this->R.setZero();
-        this->R.topLeftCorner(12, 12) = .1 * MatMN<T, 12, 12>::Identity();      // GRF
-        this->R.bottomRightCorner(12, 12) = .01 * MatMN<T, 12, 12>::Identity();  // Commanded joint vel
+//        Qeul.setZero();
+//        Qpos.setZero();
+//        Qw.setZero();
+//        Qv.setZero();
+//        QqJ.setZero();
+//
+//        Qeul.diagonal() << 1, 5, 5;
+//        Qpos.diagonal() << 0, 0, 15;
+//        Qw.diagonal() << .2, .2, .2;
+//        Qv.diagonal() << 4, 1, 4;
+//        QqJ.diagonal() << 1*(1-contact[0]),1-contact[0],1-contact[0],
+//                          1*(1-contact[1]),1-contact[1],1-contact[1],
+//                          1*(1-contact[2]),1-contact[2],1-contact[2],
+//                          1*(1-contact[3]),1-contact[3],1-contact[3];
+//        QqJ = 0.1 * QqJ;
+//        this->Q.topLeftCorner(3, 3) << Qeul;
+//        this->Q.block(3, 3, 3, 3) << Qpos;
+//        this->Q.block(6, 6, 3, 3) << Qw;
+//        this->Q.block(9, 9, 3, 3) << Qv;
+//        this->Q.bottomRightCorner(12, 12) << QqJ;
+//
+//        /* Terminal state weighting matrix */
+//        VecM<T, 24> scale;
+//        scale << 1, 1, 1, 0, 0, 15, 1, .5, 1, 1, 1, 1, .5 * VecM<T, 12>::Ones();
+//        this->Qf = 20 * scale.asDiagonal() * this->Q;
+//
+//        /* Control weighting matrices */
+//        this->R.setZero();
+//        this->R.topLeftCorner(12, 12) = .1 * MatMN<T, 12, 12>::Identity();      // GRF
+//        this->R.bottomRightCorner(12, 12) = .01 * MatMN<T, 12, 12>::Identity();  // Commanded joint vel
 
         /* turning cost */
         /* State weighting matrices */

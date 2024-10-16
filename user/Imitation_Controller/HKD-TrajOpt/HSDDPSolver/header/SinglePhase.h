@@ -133,6 +133,8 @@ public:
 
     void push_back() override;
 
+    void push_back_non_all_zero() override;
+
     void pop_front() override;
 
     void reset_params() override {constraintContainer.reset_params();}

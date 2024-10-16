@@ -20,6 +20,8 @@ public:
 
     void load_state_data(const string&);
 
+    void load_state_data_with_control(const string&);
+
     void load_contact_data(const string&);
 
     void compute_status_duration();

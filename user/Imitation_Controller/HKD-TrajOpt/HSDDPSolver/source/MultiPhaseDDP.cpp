@@ -28,7 +28,7 @@ void MultiPhaseDDP<T>::forward_sweep(T eps, HSDDP_OPTION &option, bool calc_part
     run_before_forward_sweep();
     for (size_t i = 0; i < n_phases; i++)
     {
-        if (i == 0)
+        if (i == 0) // maybe here set X_bar[k] where k = m, 2m, ..., (M-1)m here
         {
             phases[i]->set_nominal_initial_condition(x0);
         }
@@ -72,6 +72,7 @@ bool MultiPhaseDDP<T>::backward_sweep_regularized(T &regularization, HSDDP_OPTIO
 
         regularization = std::max(regularization * option.update_regularization, T(1e-03));
         iter++;
+        ::printf("backward sweep iteration is: %d\n",iter); // using regulation to make backward_sweep finally succeed!
 
         if (regularization > 1e2)
         {
@@ -210,7 +211,9 @@ void MultiPhaseDDP<T>::solve(HSDDP_OPTION option)
 #ifdef TIME_BENCHMARK
         start = high_resolution_clock::now();
 #endif
-        forward_sweep(0, option, true);    
+
+//        update_nominal_control_sequence_in_trajectory(); // setting initial U_bar as the optimized U* from high-level optimizer. TODO
+        forward_sweep(0, option, true);    // calculated X and U in trajectory by applying x_initial and U_bar. Most important is to cal A and B the partial dynamic.
         printf("total cost = %f \n", actual_cost);   
 
 #ifdef TIME_BENCHMARK
@@ -219,7 +222,7 @@ void MultiPhaseDDP<T>::solve(HSDDP_OPTION option)
         time_partial = duration.count();
 #endif
 
-        update_nominal_trajectory();
+        update_nominal_trajectory(); // put the values in U and X (in traj) to U_bar and X_bar(in traj) as latest nominal trajectory.
         T regularization = 0;
         iter_in = 0;
         while (iter_in < option.max_DDP_iter)
@@ -234,20 +237,24 @@ void MultiPhaseDDP<T>::solve(HSDDP_OPTION option)
 #ifdef TIME_BENCHMARK
             start = high_resolution_clock::now();
 #endif
-            success = backward_sweep_regularized(regularization, option);
+            success = backward_sweep_regularized(regularization, option); // calculated optimal dU and optimal K from current nominal trajectory
             if (!success)
             {
                 goto bad_solve;
             }
-            
-            if (forward_iteration(option))
+
+            if (forward_iteration(option)) // calculated X and U in trajectory by applying x_nominal and U_bar with optimal dU and optimal K
+                // while applying line search technique to make sure the decreasing of total cost.
             {
                 // if line search succeeds
                 // accept the step
-                update_nominal_trajectory();
+                update_nominal_trajectory(); // put the values in U and X (in traj) to U_bar and X_bar(in traj) as latest nominal trajectory.
             }
             else
             {
+                printf(RED);
+                printf("line search failed!!!!!!!!!!!!!!!!!!!!!\n");
+                printf(RESET);
                 // else do not update
                 actual_cost = cost_prev;
             }
@@ -267,7 +274,8 @@ void MultiPhaseDDP<T>::solve(HSDDP_OPTION option)
             start = high_resolution_clock::now();
 #endif
 
-            forward_sweep(0, option, true);
+            forward_sweep(0, option, true); // calculated X and U in trajectory by applying x_initial and U_bar. Most important is to cal A and B the partial dynamic.
+            // which means the A, B in backward will be updated according to the latest U and X
 
 #ifdef TIME_BENCHMARK
             stop = high_resolution_clock::now();

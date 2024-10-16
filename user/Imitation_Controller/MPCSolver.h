@@ -28,15 +28,35 @@ public:
     MPCSolver() : mpc_lcm(getLcmUrl(255)), rfmpc_lcm(getLcmUrl(255))
     {
         use_hkd_ = true;
+        use_optimized_force_ = false;
+//        use_optimized_force_ = true;
         // Setup reference
-        string imitation_path = "../user/Imitation_Controller/PolicyRollout/In-place-trot/A1/";
+//        string imitation_path = "../user/Imitation_Controller/PolicyRollout/In-place-trot/A1/";
+//         string imitation_path = "../user/Imitation_Controller/PolicyRollout/test/";
+         string imitation_path = "/home/ray/log/";
+
+
+//       string imitation_path = "../user/Imitation_Controller/PolicyRollout/trot/a1/";
+
 //        string imitation_path = "../user/Imitation_Controller/PolicyRollout/left_turn_center/";
 //        string imitation_path = "../user/Imitation_Controller/PolicyRollout/";
 
-        string contact_fname = imitation_path + "contact_post.csv";
-        string state_fname = imitation_path + "state_post.csv";
+//        string contact_fname = imitation_path + "contact_post_arcdog_81.csv";
+//        string state_fname = imitation_path + "state_post_arcdog_81.csv";
+//        string contact_fname = imitation_path + "contact_post.csv";
+//        string state_fname = imitation_path + "state_post.csv";
+        string contact_fname = imitation_path + "contact_post_mini_cheetah.csv";
+        string state_fname = imitation_path + "state_post_mini_cheetah.csv";
+//        string contact_fname = imitation_path + "contact_post_arcdog.csv";
+//        string state_fname = imitation_path + "state_post_arcdog.csv";
         imitation_ref.load_contact_data(contact_fname);
-        imitation_ref.load_state_data(state_fname);
+        if (use_optimized_force_){
+            printf("use optimized force as reference force!\n");
+            imitation_ref.load_state_data_with_control(state_fname);
+        } else{
+            imitation_ref.load_state_data(state_fname);
+        }
+
         imitation_ref.compute_status_duration();
 
         opt_ref.set_topLevel_reference(imitation_ref.get_data_ptr());
@@ -189,6 +209,8 @@ public:
 
     // use rfmpc solver or HKD solver
     bool use_hkd_ = true;
+
+    bool use_optimized_force_ = true;
 
     Eigen::MatrixXf Xt_, Ut_, Xd_, Ud_;
 

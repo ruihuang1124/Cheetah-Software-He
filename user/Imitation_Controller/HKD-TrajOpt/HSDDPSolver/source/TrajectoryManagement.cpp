@@ -89,6 +89,12 @@ void Trajectory<T,xs,us,ys>::update_nominal_vals(){
     std::copy(U.begin(), U.end(), Ubar.begin());
 }
 
+template <typename T, size_t xs, size_t us, size_t ys>
+void Trajectory<T,xs,us,ys>::update_nominal_control_vals(int phase) {
+//    std::copy(ref_data_ptr->Xr.at(phase).begin(), ref_data_ptr->Xr.at(phase).end(), Xbar.begin());
+    std::copy(ref_data_ptr->Ur.at(phase).begin(), ref_data_ptr->Ur.at(phase).end(), Ubar.begin());
+}
+
 
 template <typename T, size_t xs, size_t us, size_t ys>
 void Trajectory<T,xs,us,ys>::pop_front(){    
@@ -120,6 +126,30 @@ void Trajectory<T,xs,us,ys>::push_back_zero(){
     Xbar.push_back(VecM<T, xs>::Zero());
     X.push_back(VecM<T, xs>::Zero());
     Ubar.push_back(VecM<T, us>::Zero());
+    U.push_back(VecM<T,us>::Zero());
+    Y.push_back(VecM<T,ys>::Zero());
+
+    A.push_back(MatMN<T, xs, xs>::Zero());
+    B.push_back(MatMN<T, xs, us>::Zero());
+    C.push_back(MatMN<T, ys, xs>::Zero());
+    D.push_back(MatMN<T, ys, us>::Zero());
+
+    V.push_back(T(0));
+    dV.push_back(T(0));
+    dU.push_back(VecM<T, us>::Zero());
+    G.push_back(VecM<T, xs>::Zero());
+    H.push_back(MatMN<T, xs, xs>::Zero());
+    K.push_back(MatMN<T, xs, xs>::Zero());
+
+    rcostData.push_back(RCostData<T,xs,us,ys>());
+    horizon++;
+}
+
+template <typename T, size_t xs, size_t us, size_t ys>
+void Trajectory<T,xs,us,ys>::push_back_with_ref_control_vals_as_nominal() {
+    Xbar.push_back(VecM<T, xs>::Zero());
+    X.push_back(VecM<T, xs>::Zero());
+    Ubar.push_back(ref_data_ptr->Ur.back().back());// last phase of Ur and latest ur in Ur.back(); notice that ref_data_ptr must be pop_front and push_bask before invoking this method.
     U.push_back(VecM<T,us>::Zero());
     Y.push_back(VecM<T,ys>::Zero());
 

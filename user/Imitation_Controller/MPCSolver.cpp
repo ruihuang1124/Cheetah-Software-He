@@ -26,13 +26,13 @@ void MPCSolver<T>::initialize() {
 
     mpc_config.plan_duration = 0.44;
     mpc_config.nsteps_between_mpc = 2;
-    mpc_config.timeStep = 0.011;
+    mpc_config.timeStep = 0.01;
     dt_mpc = mpc_config.timeStep;
     opt_ref.initialize_referenceData(mpc_config.plan_duration);// first set data in HKDProblem.
 
     opt_problem.setup(&opt_problem_data, mpc_config);// ref_date in HKD is the same as it in opt_problem_data here.
     opt_problem.initialization();
-    opt_problem.print();
+//    opt_problem.print();
 
     if (!almostEqual_number(dt_mpc, opt_problem_data.ref_data_ptr->dt)) {
         printf(RED);
@@ -248,6 +248,14 @@ void MPCSolver<T>::publish_mpc_cmd()
         hkd_cmds.foot_placement[3*l + 1] = pf[l][1];
         hkd_cmds.foot_placement[3*l + 2] = pf[l][2];
     }
+
+    std::cout << "The foot_placement is " << hkd_cmds.foot_placement[0] << " "
+              << hkd_cmds.foot_placement[1] << " " << hkd_cmds.foot_placement[2] << " "
+              << hkd_cmds.foot_placement[3] << " " << hkd_cmds.foot_placement[4] << " "
+              << hkd_cmds.foot_placement[5] << " " << hkd_cmds.foot_placement[6] << " "
+              << hkd_cmds.foot_placement[7] << " " << hkd_cmds.foot_placement[8] << " "
+              << hkd_cmds.foot_placement[9] << " " << hkd_cmds.foot_placement[10] << " "
+              << hkd_cmds.foot_placement[11] << " " << "\n";
     mpc_lcm.publish("mpc_command", &hkd_cmds);
     printf(GRN);
     printf("published a mpc command message \n");
