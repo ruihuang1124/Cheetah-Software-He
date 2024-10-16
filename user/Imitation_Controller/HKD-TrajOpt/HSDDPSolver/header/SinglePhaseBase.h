@@ -6,13 +6,15 @@
 
 
 template<typename> class MultiPhaseDDP; //forward declaration of MultiPhaseDDP class template
+template<typename> class MSMultiPhaseDDP; //forward declaration of MultiPhaseDDP class template
 
 template<typename T>
 class SinglePhaseBase
 {
 
 private:    
-    friend class MultiPhaseDDP<T>; 
+    friend class MultiPhaseDDP<T>;
+    friend class MSMultiPhaseDDP<T>;
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -6,12 +6,16 @@ void Trajectory<T,xs,us,ys>::create_data(T timeStep_, int horizon_){
     timeStep = timeStep_;
     horizon = horizon_;
     duration = timeStep * horizon;
+    steps_between_shooting_states = 6;
 
     Xbar.assign(horizon+1, VecM<T, xs>::Zero());
     X.assign(horizon+1, VecM<T, xs>::Zero());
     Ubar.assign(horizon, VecM<T, us>::Zero());
     U.assign(horizon, VecM<T, us>::Zero());
     Y.assign(horizon, VecM<T, ys>::Zero());
+
+    d.assign(horizon+1, VecM<T, xs>::Zero());
+    dbar.assign(horizon+1, VecM<T, xs>::Zero());
 
     A.assign(horizon+1, MatMN<T, xs, xs>::Zero());
     B.assign(horizon, MatMN<T, xs, us>::Zero());
@@ -35,6 +39,8 @@ void Trajectory<T,xs,us,ys>::clear(){
     Ubar.clear();
     U.clear();
     Y.clear();
+    d.clear();
+    dbar.clear();
     A.clear();
     B.clear();
     C.clear();
@@ -59,6 +65,9 @@ void Trajectory<T,xs,us,ys>::zero_all(){
     set_eigen_deque_zero(Ubar);
     set_eigen_deque_zero(U);
     set_eigen_deque_zero(Y);
+
+    set_eigen_deque_zero(d);
+    set_eigen_deque_zero(dbar);
 
     set_eigen_deque_zero(A);
     set_eigen_deque_zero(B);
@@ -87,6 +96,7 @@ template <typename T, size_t xs, size_t us, size_t ys>
 void Trajectory<T,xs,us,ys>::update_nominal_vals(){
     std::copy(X.begin(), X.end(), Xbar.begin());
     std::copy(U.begin(), U.end(), Ubar.begin());
+    std::copy(d.begin(), d.end(), dbar.begin());
 }
 
 template <typename T, size_t xs, size_t us, size_t ys>
@@ -103,6 +113,9 @@ void Trajectory<T,xs,us,ys>::pop_front(){
     Ubar.pop_front();
     U.pop_front();
     Y.pop_front();
+
+    dbar.pop_front();
+    d.pop_front();
 
     A.pop_front();
     B.pop_front();
@@ -129,6 +142,9 @@ void Trajectory<T,xs,us,ys>::push_back_zero(){
     U.push_back(VecM<T,us>::Zero());
     Y.push_back(VecM<T,ys>::Zero());
 
+    dbar.push_back(VecM<T, xs>::Zero());
+    d.push_back(VecM<T, xs>::Zero());
+
     A.push_back(MatMN<T, xs, xs>::Zero());
     B.push_back(MatMN<T, xs, us>::Zero());
     C.push_back(MatMN<T, ys, xs>::Zero());
@@ -152,6 +168,9 @@ void Trajectory<T,xs,us,ys>::push_back_with_ref_control_vals_as_nominal() {
     Ubar.push_back(ref_data_ptr->Ur.back().back());// last phase of Ur and latest ur in Ur.back(); notice that ref_data_ptr must be pop_front and push_bask before invoking this method.
     U.push_back(VecM<T,us>::Zero());
     Y.push_back(VecM<T,ys>::Zero());
+
+    dbar.push_back(VecM<T, xs>::Zero());
+    d.push_back(VecM<T, xs>::Zero());
 
     A.push_back(MatMN<T, xs, xs>::Zero());
     B.push_back(MatMN<T, xs, us>::Zero());

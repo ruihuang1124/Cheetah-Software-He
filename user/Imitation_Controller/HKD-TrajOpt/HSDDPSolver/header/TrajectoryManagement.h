@@ -102,6 +102,7 @@ public:
     T duration;
     T timeStep;
     int horizon; // the size of the state trajectory would be then horizon + 1
+    int steps_between_shooting_states;
 
     /* Shared pointers to hold state, control and output trajectory */
     deque<VecM<T, xs>> Xbar;
@@ -109,6 +110,10 @@ public:
     deque<VecM<T, us>> Ubar;
     deque<VecM<T, us>> U;
     deque<VecM<T, ys>> Y;
+
+    /* Shared pointers to hold state defection for multiple shooting DDP */
+    deque<VecM<T, xs>> d;
+    deque<VecM<T, xs>> dbar;
 
     /* Shared pointers to hold linearized dynamics */
     deque<MatMN<T, xs, xs>> A;

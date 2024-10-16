@@ -15,3 +15,6 @@ target_link_libraries(imitation_ctrl hkd-trajopt robot biomimetics dynacore_para
 
 add_executable(mpc_solve mpc_main.cpp MPCSolver.cpp Imitation_Reference.cpp)
 target_link_libraries(mpc_solve hkd-trajopt robot biomimetics dynacore_param_handler rfmpc-trajopt)
+
+add_executable(mpc_msddp_solve mpc_msddp_main.cpp MPC_MSDDP_Solver.cpp Imitation_Reference.cpp)
+target_link_libraries(mpc_msddp_solve hkd-trajopt robot biomimetics dynacore_param_handler rfmpc-trajopt)
