@@ -25,6 +25,7 @@ public:
         phases = phases_in;
         n_phases = phases.size();
         actual_cost = 0;
+        actual_total_defection_norm = 0;
         exp_cost_change = 0;
         max_pconstr = 0;
         max_pconstr_prev = 0;
@@ -59,6 +60,8 @@ public:
 
     T get_actual_cost() {return actual_cost;}
 
+    T get_actual_total_defection_norm() {return actual_total_defection_norm;}
+
     T get_exp_cost_change() {return exp_cost_change;}
 
     void empty_solution(){
@@ -68,6 +71,7 @@ public:
         }        
         phases.clear();
         actual_cost = 0;
+        actual_total_defection_norm = 0;
         exp_cost_change = 0;
         max_tconstr = 0;
         max_pconstr = 0;
@@ -80,6 +84,7 @@ public:
     int n_phases;
 
     T actual_cost;
+    T actual_total_defection_norm;
     T exp_cost_change;
 
     T max_tconstr_prev;

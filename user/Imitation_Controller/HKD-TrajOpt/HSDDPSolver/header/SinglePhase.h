@@ -113,6 +113,8 @@ public:
 
     T get_actual_cost() override;
 
+    T get_actual_total_defection_norm() override;
+
     T get_max_tconstrs() override;
 
     T get_max_pconstrs() override;

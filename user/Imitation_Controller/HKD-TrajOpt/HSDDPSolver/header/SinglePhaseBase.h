@@ -42,7 +42,9 @@ public:
 
     virtual DVec<T> get_terminal_state_nominal(){}
 
-    virtual T get_actual_cost() = 0;   
+    virtual T get_actual_cost() = 0;
+
+    virtual T get_actual_total_defection_norm() = 0;
 
     virtual T get_max_tconstrs() {}
 

@@ -114,6 +114,7 @@ public:
     /* Shared pointers to hold state defection for multiple shooting DDP */
     deque<VecM<T, xs>> d;
     deque<VecM<T, xs>> dbar;
+    deque<T> d_accumulated;
 
     /* Shared pointers to hold linearized dynamics */
     deque<MatMN<T, xs, xs>> A;

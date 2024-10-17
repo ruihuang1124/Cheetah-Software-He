@@ -87,6 +87,12 @@ T SinglePhase<T,xs,us,ys>::get_actual_cost()
 }
 
 template <typename T, size_t xs, size_t us, size_t ys>
+T SinglePhase<T,xs,us,ys>::get_actual_total_defection_norm()
+{
+    return T(0);// just for not building wrong, fix TODO.
+}
+
+template <typename T, size_t xs, size_t us, size_t ys>
 T SinglePhase<T,xs,us,ys>::get_max_pconstrs()
 {
     return constraintContainer.get_max_pconstrs();
@@ -218,7 +224,7 @@ bool SinglePhase<T,xs,us,ys>::backward_sweep(T regularization, T dVprime, DVec<T
         K->at(k) = -Quu_inv * Qux;
         G->at(k) = Qx - Qux.transpose() * Quu_inv * Qu;
         H->at(k) = Qxx - Qux.transpose() * Quu_inv * Qux;
-        dV->at(k) = dV->at(k + 1) - Qu.transpose() * Quu.inverse() * Qu;
+        dV->at(k) = dV->at(k + 1) - 0.5 * Qu.transpose() * Quu.inverse() * Qu;// Check the calculation.
     }
     return success;
 }

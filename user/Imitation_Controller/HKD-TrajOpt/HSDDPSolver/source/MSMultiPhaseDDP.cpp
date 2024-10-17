@@ -21,6 +21,7 @@ template <typename T>
 void MSMultiPhaseDDP<T>::forward_sweep(T eps, HSDDP_OPTION &option, bool calc_partial)
 {
     actual_cost = 0;
+    actual_total_defection_norm = 0;
     max_pconstr = 0;
     max_tconstr = 0;
     DVec<T> xinit = x0; // initial condition for each phase
@@ -43,6 +44,7 @@ void MSMultiPhaseDDP<T>::forward_sweep(T eps, HSDDP_OPTION &option, bool calc_pa
         phases[i]->set_initial_condition(xinit);             // Set initial condition of current phase
         phases[i]->forward_sweep(eps, option, calc_partial); // run forward sweep for current phase
         actual_cost += phases[i]->get_actual_cost();         // update total cost
+        actual_total_defection_norm += phases[i]->get_actual_total_defection_norm();
         // update the maximum constraint violations
         max_pconstr = std::min(max_pconstr, phases[i]->get_max_pconstrs()); // should have non-positive value
         max_tconstr = std::max(max_tconstr, phases[i]->get_max_tconstrs()); // should have non-negative value
@@ -146,6 +148,7 @@ bool MSMultiPhaseDDP<T>::forward_iteration(HSDDP_OPTION &option)
 {
     T eps = 1;
     T cost_prev = actual_cost;
+    T total_defection_norm_prev = actual_total_defection_norm;
     bool success = false;
 #ifdef TIME_BENCHMARK
     fit_iter = 0;
@@ -179,6 +182,7 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
     int iter_in = 0;
 
     T cost_prev;
+    T total_defection_norm_prev;
     bool success = false; // currently defined only for backward sweep
     bool ReB_active = option.ReB_active;
 
@@ -231,6 +235,7 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
             printf("\t inner loop iteration %d \n", iter_in);
 #endif
             cost_prev = actual_cost;
+            total_defection_norm_prev = actual_total_defection_norm;
 
 #ifdef TIME_BENCHMARK
             start = high_resolution_clock::now();
@@ -251,6 +256,7 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
             {
                 // else do not update
                 actual_cost = cost_prev;
+                actual_total_defection_norm = total_defection_norm_prev;
             }
 
 #ifdef TIME_BENCHMARK
@@ -309,6 +315,7 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
     }
     
     printf("total cost = %f \n", actual_cost);
+    printf("total states defection norm = %f \n", actual_total_defection_norm);
     printf("terminal constraint violation = %f \n", max_tconstr);
     printf("path constraint violation = %f \n", fabs(max_pconstr));
 

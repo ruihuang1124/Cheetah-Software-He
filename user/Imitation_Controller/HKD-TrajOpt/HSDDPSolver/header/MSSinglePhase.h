@@ -117,6 +117,8 @@ public:
 
     T get_actual_cost() override;
 
+    T get_actual_total_defection_norm() override;
+
     T get_max_tconstrs() override;
 
     T get_max_pconstrs() override;
@@ -175,6 +177,7 @@ private:
     /* Shared pointers to hold state defection for multiple shooting DDP */
     deque<VecM<T, xs>>* dbar = nullptr;
     deque<VecM<T, xs>>* d = nullptr;
+    deque<T>* d_accumulated = nullptr;
 
     /* pointers to hold linearized dynamics */
     deque<MatMN<T, xs, xs>>* A = nullptr;

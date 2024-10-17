@@ -91,6 +91,11 @@ T MSSinglePhase<T,xs,us,ys>::get_actual_cost()
 }
 
 template <typename T, size_t xs, size_t us, size_t ys>
+T MSSinglePhase<T,xs,us,ys>::get_actual_total_defection_norm() {
+    return d_accumulated->at(phase_horizon);
+}
+
+template <typename T, size_t xs, size_t us, size_t ys>
 T MSSinglePhase<T,xs,us,ys>::get_max_pconstrs()
 {
     return constraintContainer.get_max_pconstrs();
@@ -113,6 +118,8 @@ template <typename T, size_t xs, size_t us, size_t ys>
 void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool calc_partial)
 {
     V->at(0) = 0;
+    d_accumulated->at(0) = 0;
+    T d_accumulated_prev = 0;
     T Vprev = 0;
     VecM<T, xs> delta_x;
     VecM<T, us> delta_u;
@@ -136,6 +143,7 @@ void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool 
             dynamic_X.setZero();
             dynamics(dynamic_X, Y->at(k), X->at(k), U->at(k));
             d->at(k+1) = dynamic_X - X->at(k+1);//
+//            ::printf("d(k+1) is:")
         } else{ // X(k+1) will be overwritten by non-linear dynamic roll-out.
             dynamics(X->at(k + 1), Y->at(k), X->at(k), U->at(k));
             d->at(k+1).setZero();//
@@ -164,6 +172,8 @@ void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool 
         }
         V->at(k) = Vprev + rcostData->at(k).l;
         Vprev = V->at(k);
+        d_accumulated->at(k+1) = d_accumulated_prev + d->at(k+1).norm();
+        d_accumulated_prev = d_accumulated->at(k+1);
     }
     /* compute terminal cost and its partials */
     costContainer.terminal_cost(*tcostData, X->at(k), k);
@@ -173,7 +183,7 @@ void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool 
         costContainer.terminal_cost_par(*tcostData, X->at(k), k);
     }
     /* compute terminal constraint */
-    constraintContainer.compute_terminal_constraints(X->at(k));
+    constraintContainer.compute_terminal_constraints(X->at(k));// k == phase_horizon now.
     /* update terminal cost with terminal constraint using AL */
     if (option.AL_active)
     {
@@ -230,7 +240,8 @@ bool MSSinglePhase<T,xs,us,ys>::backward_sweep(T regularization, T dVprime, DVec
         K->at(k) = -Quu_inv * Qux;
         G->at(k) = Qx - Qux.transpose() * Quu_inv * Qu;
         H->at(k) = Qxx - Qux.transpose() * Quu_inv * Qux;
-        dV->at(k) = dV->at(k + 1) - Qu.transpose() * Quu.inverse() * Qu;
+        dV->at(k) = dV->at(k + 1) - 0.5 * Qu.transpose() * Quu.inverse() * Qu + G->at(k).transpose() * dbar->at(k) +
+                    0.5 * dbar->at(k + 1).transpose() * H->at(k + 1) * dbar->at(k + 1);
     }
     return success;
 }
@@ -333,6 +344,7 @@ void MSSinglePhase<T,xs,us,ys>::update_trajectory_ptrs()
     X = &(traj->X);
     dbar = &(traj->dbar);
     d = &(traj->d);
+    d_accumulated = &(traj->d_accumulated);
     Ubar = &(traj->Ubar);
     U = &(traj->U);
     Y = &(traj->Y);
