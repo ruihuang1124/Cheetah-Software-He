@@ -20,6 +20,8 @@ static int fit_iter = 0;
 template <typename T>
 void MSMultiPhaseDDP<T>::forward_sweep(T eps, HSDDP_OPTION &option, bool calc_partial)
 {
+    T dCostExpectedSinglePhase = 0;
+    expect_cost_change = 0;
     actual_cost = 0;
     actual_total_defection_norm = 0;
     max_pconstr = 0;
@@ -43,6 +45,8 @@ void MSMultiPhaseDDP<T>::forward_sweep(T eps, HSDDP_OPTION &option, bool calc_pa
 
         phases[i]->set_initial_condition(xinit);             // Set initial condition of current phase
         phases[i]->forward_sweep(eps, option, calc_partial); // run forward sweep for current phase
+        phases[i]->get_expected_cost_change(dCostExpectedSinglePhase);
+        expect_cost_change += dCostExpectedSinglePhase;
         actual_cost += phases[i]->get_actual_cost();         // update total cost
         actual_total_defection_norm += phases[i]->get_actual_total_defection_norm();
         // update the maximum constraint violations
@@ -146,23 +150,37 @@ bool MSMultiPhaseDDP<T>::backward_sweep(T regularization)
 template <typename T>
 bool MSMultiPhaseDDP<T>::forward_iteration(HSDDP_OPTION &option)
 {
+    expect_cost_change = 0;
     T eps = 1;
     T cost_prev = actual_cost;
-    T total_defection_norm_prev = actual_total_defection_norm;
     bool success = false;
 #ifdef TIME_BENCHMARK
     fit_iter = 0;
 #endif
     while (eps > 1e-5)
     {
-        forward_sweep(eps, option, false); // perform forward sweep but not computing dynamics linearization
+        forward_sweep(eps, option, false); // perform forward sweep but not computing dynamics linearization,
+        // actual cost and actual_total_defect_norm and expect_cost_change are set here, too.
+
+        merit = actual_cost + defect_weight * actual_total_defection_norm;
+        T actual_merit_change =  merit - merit_prev;
+        T expect_merit_change = expect_cost_change - eps * defect_weight * total_defection_norm_prev;
+//        T gamma = 0.1;
 #ifdef DEBUG
-        printf("\t eps=%.3e \t actual change in cost=%.3e \t expeced change in cost=%.3e\n",
-               eps, actual_cost - cost_prev, option.gamma * eps * (1 - eps / 2) * exp_cost_change);
+//        printf("\t eps=%.3e \t actual change in cost=%.3e \t expeced change in cost=%.3e\n",
+//               eps, actual_cost - cost_prev, option.gamma * eps * (1 - eps / 2) * exp_cost_change);
+        printf("\t eps=%.3e \t actual change in merit=%.3e \t expeced change in merit=%.3e\n",
+               eps, actual_merit_change, option.gamma * expect_merit_change);
 #endif
-        if (actual_cost <= cost_prev + option.gamma * eps * (1 - eps / 2) * exp_cost_change)
+//        if (actual_cost <= cost_prev + option.gamma * eps * (1 - eps / 2) * exp_cost_change)
+//        {
+//            success = true;
+//            break;
+//        }
+        if (actual_merit_change <= option.gamma * eps * expect_merit_change)
         {
             success = true;
+            printf("\t line search is succeful with eps=%.3e\n", eps);
             break;
         }
         eps *= option.alpha;
@@ -182,7 +200,7 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
     int iter_in = 0;
 
     T cost_prev;
-    T total_defection_norm_prev;
+    total_defection_norm_prev = 0;
     bool success = false; // currently defined only for backward sweep
     bool ReB_active = option.ReB_active;
 
@@ -227,6 +245,11 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
         update_nominal_trajectory();
         T regularization = 0;
         iter_in = 0;
+        defect_weight = 1;
+        merit = 0;
+        merit_prev = 0;
+        T rho = 0.2;
+        T min_defect_weight = 2;
         while (iter_in < option.max_DDP_iter)
         {
             iter_in++;
@@ -245,8 +268,15 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
             {
                 goto bad_solve;
             }
-            
-            if (forward_iteration(option))
+
+            // initial cost is cost_prev
+            // update defect_weight with dnorm, expect_cost_change, rho, current_defect_weight
+            defect_weight = update_defect_weight(expect_cost_change,total_defection_norm_prev, rho, defect_weight, min_defect_weight);
+
+            // initial merit
+            merit_prev = cost_prev + defect_weight * total_defection_norm_prev;
+
+            if (forward_iteration(option)) // hybrid lineSearch is done inside forward iteration
             {
                 // if line search succeeds
                 // accept the step
@@ -254,6 +284,9 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
             }
             else
             {
+                printf(RED);
+                printf("line search failed!!!!!!!!!!!!!!!!!!!!!\n");
+                printf(RESET);
                 // else do not update
                 actual_cost = cost_prev;
                 actual_total_defection_norm = total_defection_norm_prev;
@@ -392,6 +425,21 @@ void MSMultiPhaseDDP<T>::update_nominal_trajectory()
     {
         phase->update_nominal_trajectory();
     }
+}
+
+
+template <typename T>
+T MSMultiPhaseDDP<T>::update_defect_weight(T cost_first_order, T defect_norm, T pho, T weight_prev, T min_weight) {
+    if (defect_norm == 0) {
+        return weight_prev;
+    }
+
+    double exp_change_abs = std::abs(cost_first_order);
+    double thresh = 10 + exp_change_abs / ((1 - pho) * defect_norm);
+
+    double weight = (weight_prev >= thresh) ? weight_prev : thresh;
+
+    return std::max(min_weight, weight);
 }
 
 template class MSMultiPhaseDDP<double>;

@@ -93,6 +93,12 @@ T SinglePhase<T,xs,us,ys>::get_actual_total_defection_norm()
 }
 
 template <typename T, size_t xs, size_t us, size_t ys>
+void SinglePhase<T,xs,us,ys>::get_expected_cost_change(T &cost_change)
+{
+    cost_change = T(0);
+}
+
+template <typename T, size_t xs, size_t us, size_t ys>
 T SinglePhase<T,xs,us,ys>::get_max_pconstrs()
 {
     return constraintContainer.get_max_pconstrs();

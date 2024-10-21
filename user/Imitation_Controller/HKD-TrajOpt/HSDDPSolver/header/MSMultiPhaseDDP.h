@@ -27,6 +27,7 @@ public:
         actual_cost = 0;
         actual_total_defection_norm = 0;
         exp_cost_change = 0;
+        expect_cost_change = 0;
         max_pconstr = 0;
         max_pconstr_prev = 0;
         max_tconstr = 0;
@@ -64,6 +65,8 @@ public:
 
     T get_exp_cost_change() {return exp_cost_change;}
 
+    T get_expected_cost_change() {return expect_cost_change;}
+
     void empty_solution(){
         for (auto phase:phases)
         {
@@ -73,6 +76,7 @@ public:
         actual_cost = 0;
         actual_total_defection_norm = 0;
         exp_cost_change = 0;
+        expect_cost_change = 0;
         max_tconstr = 0;
         max_pconstr = 0;
         max_tconstr_prev = 0;
@@ -86,6 +90,11 @@ public:
     T actual_cost;
     T actual_total_defection_norm;
     T exp_cost_change;
+    T expect_cost_change;
+    T merit;
+    T merit_prev;
+    T defect_weight;
+    T total_defection_norm_prev;
 
     T max_tconstr_prev;
     T max_pconstr_prev;
@@ -95,6 +104,8 @@ public:
     DVec<T> x0;
 private:
     function<void(DVec<T>)> dynamics_init_callback;
+
+    T update_defect_weight(T cost_first_order, T defect_norm, T pho, T weight_prev, T min_weight);
 
 };
 

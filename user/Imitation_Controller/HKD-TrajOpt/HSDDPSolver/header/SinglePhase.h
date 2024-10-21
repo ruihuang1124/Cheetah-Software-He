@@ -115,6 +115,8 @@ public:
 
     T get_actual_total_defection_norm() override;
 
+    void get_expected_cost_change(T& cost_change)  override;
+
     T get_max_tconstrs() override;
 
     T get_max_pconstrs() override;

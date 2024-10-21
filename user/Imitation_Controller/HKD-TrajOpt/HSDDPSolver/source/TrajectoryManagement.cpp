@@ -17,6 +17,7 @@ void Trajectory<T,xs,us,ys>::create_data(T timeStep_, int horizon_){
     d.assign(horizon+1, VecM<T, xs>::Zero());
     dbar.assign(horizon+1, VecM<T, xs>::Zero());
     d_accumulated.assign(horizon+1,0);
+    expected_cost_change.assign(horizon + 1, 0);
 
     A.assign(horizon+1, MatMN<T, xs, xs>::Zero());
     B.assign(horizon, MatMN<T, xs, us>::Zero());
@@ -43,6 +44,7 @@ void Trajectory<T,xs,us,ys>::clear(){
     d.clear();
     dbar.clear();
     d_accumulated.clear();
+    expected_cost_change.clear();
     A.clear();
     B.clear();
     C.clear();
@@ -71,6 +73,7 @@ void Trajectory<T,xs,us,ys>::zero_all(){
     set_eigen_deque_zero(d);
     set_eigen_deque_zero(dbar);
     set_scalar_deque_zero(d_accumulated);
+    set_scalar_deque_zero(expected_cost_change);
 
     set_eigen_deque_zero(A);
     set_eigen_deque_zero(B);
@@ -120,6 +123,7 @@ void Trajectory<T,xs,us,ys>::pop_front(){
     dbar.pop_front();
     d.pop_front();
     d_accumulated.pop_front();
+    expected_cost_change.pop_front();
 
     A.pop_front();
     B.pop_front();
@@ -149,6 +153,7 @@ void Trajectory<T,xs,us,ys>::push_back_zero(){
     dbar.push_back(VecM<T, xs>::Zero());
     d.push_back(VecM<T, xs>::Zero());
     d_accumulated.push_back(T(0));
+    expected_cost_change.push_back(T(0));
 
     A.push_back(MatMN<T, xs, xs>::Zero());
     B.push_back(MatMN<T, xs, us>::Zero());

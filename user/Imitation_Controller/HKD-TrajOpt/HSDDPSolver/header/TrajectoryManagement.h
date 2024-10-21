@@ -115,6 +115,7 @@ public:
     deque<VecM<T, xs>> d;
     deque<VecM<T, xs>> dbar;
     deque<T> d_accumulated;
+    deque<T> expected_cost_change;
 
     /* Shared pointers to hold linearized dynamics */
     deque<MatMN<T, xs, xs>> A;

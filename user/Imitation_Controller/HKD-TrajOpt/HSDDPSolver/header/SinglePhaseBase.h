@@ -46,6 +46,8 @@ public:
 
     virtual T get_actual_total_defection_norm() = 0;
 
+    virtual void get_expected_cost_change(T& cost_change) = 0;
+
     virtual T get_max_tconstrs() {}
 
     virtual T get_max_pconstrs() {}

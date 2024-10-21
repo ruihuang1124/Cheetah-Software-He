@@ -96,6 +96,12 @@ T MSSinglePhase<T,xs,us,ys>::get_actual_total_defection_norm() {
 }
 
 template <typename T, size_t xs, size_t us, size_t ys>
+void MSSinglePhase<T,xs,us,ys>::get_expected_cost_change(T &cost_change)
+{
+    cost_change = expect_cost_change->at(phase_horizon);
+}
+
+template <typename T, size_t xs, size_t us, size_t ys>
 T MSSinglePhase<T,xs,us,ys>::get_max_pconstrs()
 {
     return constraintContainer.get_max_pconstrs();
@@ -117,6 +123,8 @@ void MSSinglePhase<T,xs,us,ys>::set_trajectory(shared_ptr<Trajectory<T,xs,us,ys>
 template <typename T, size_t xs, size_t us, size_t ys>
 void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool calc_partial)
 {
+    T cost_first_order = 0;
+    T cost_second_order = 0;
     V->at(0) = 0;
     d_accumulated->at(0) = 0;
     T d_accumulated_prev = 0;
@@ -174,9 +182,19 @@ void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool 
         Vprev = V->at(k);
         d_accumulated->at(k+1) = d_accumulated_prev + d->at(k+1).norm();
         d_accumulated_prev = d_accumulated->at(k+1);
+        cost_first_order = cost_first_order + rcostData->at(k).lu.transpose() * (U->at(k) - Ubar->at(k)) +
+                           rcostData->at(k).lx.transpose() * (X->at(k) - Xbar->at(k));
+//        cost_first_order += rcostData->at(k).lu.transpose() * (U->at(k) - Ubar->at(k));
+        cost_second_order = cost_second_order +
+                            0.5 * (U->at(k).transpose() - Ubar->at(k).transpose()) * rcostData->at(k).luu *
+                            (U->at(k) - Ubar->at(k)) +
+                            0.5 * (X->at(k).transpose() - Xbar->at(k).transpose()) * rcostData->at(k).lxx *
+                            (X->at(k) + Xbar->at(k));
     }
     /* compute terminal cost and its partials */
     costContainer.terminal_cost(*tcostData, X->at(k), k);
+    cost_first_order += tcostData->Phix.transpose() * (X->at(k) - Xbar->at(k));
+    cost_second_order += 0.5 * (X->at(k).transpose() - Xbar->at(k).transpose()) * tcostData->Phixx * (X->at(k) - Xbar->at(k));
     if (calc_partial)
     {
         // costContainer.terminal_cost_par(*tcostData, delta_x);
@@ -192,6 +210,7 @@ void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool 
         update_terminal_cost_with_tconstr(tconstrsData, al_params, calc_partial);
     }
     V->at(phase_horizon) = Vprev + tcostData->Phi;
+    expect_cost_change->at(phase_horizon) = eps * cost_first_order + 0.5 * eps * eps * cost_second_order;
 }
 
 template <typename T, size_t xs, size_t us, size_t ys>
@@ -345,6 +364,7 @@ void MSSinglePhase<T,xs,us,ys>::update_trajectory_ptrs()
     dbar = &(traj->dbar);
     d = &(traj->d);
     d_accumulated = &(traj->d_accumulated);
+    expect_cost_change = &(traj->expected_cost_change);
     Ubar = &(traj->Ubar);
     U = &(traj->U);
     Y = &(traj->Y);

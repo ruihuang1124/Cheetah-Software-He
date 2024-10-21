@@ -119,6 +119,8 @@ public:
 
     T get_actual_total_defection_norm() override;
 
+    void get_expected_cost_change(T& cost_change)  override;
+
     T get_max_tconstrs() override;
 
     T get_max_pconstrs() override;
@@ -178,6 +180,8 @@ private:
     deque<VecM<T, xs>>* dbar = nullptr;
     deque<VecM<T, xs>>* d = nullptr;
     deque<T>* d_accumulated = nullptr;
+    deque<T>* expect_cost_change = nullptr;
+
 
     /* pointers to hold linearized dynamics */
     deque<MatMN<T, xs, xs>>* A = nullptr;
