@@ -61,7 +61,8 @@ class DrawList {
   }
   size_t addCheetah3(Vec4<float> color, bool useOld, bool canHide);
   size_t addMiniCheetah(Vec4<float> color, bool useOld, bool canHide);
-  void buildDrawList();
+    size_t addArcdog(Vec4<float> color, bool useOld, bool canHide);
+    void buildDrawList();
   void loadFiles();
   void doScrolling(Vec3<float> cameraPos);
   size_t addCheckerboard(Checkerboard &checkerBoard, bool setScrolling);
@@ -327,7 +328,7 @@ class DrawList {
   Vec3<double> _cameraOrigin;
 
   size_t _cheetah3LoadIndex = 0, _miniCheetahLoadIndex = 0,
-         _sphereLoadIndex = 0, _cubeLoadIndex = 0;
+         _sphereLoadIndex = 0, _cubeLoadIndex = 0, _arcdogLoadIndex;
 };
 
 #endif  // PROJECT_DRAWLIST_H

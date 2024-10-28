@@ -14,7 +14,14 @@ void DrawList::loadFiles() {
       "c3_upper_link.obj",   "c3_lower_link.obj",
       "mini_body.obj",       "mini_abad.obj",
       "mini_upper_link.obj", "mini_lower_link.obj",
-      "sphere.obj",          "cube.obj"};
+      "sphere.obj",          "cube.obj",
+      "arcdog_body.obj",
+      "arcdog_hip_right.obj",
+      "arcdog_hip_left.obj",
+      "arcdog_thigh_right.obj",
+      "arcdog_thigh_left.obj",
+      "arcdog_calf_right.obj",
+      "arcdog_calf_left.obj",};
   for (const auto& name : names) {
     std::string filename = _baseFileName + name;
     _vertexData.emplace_back();
@@ -39,6 +46,7 @@ void DrawList::loadFiles() {
   _cubeLoadIndex = 9;
   _miniCheetahLoadIndex = 4;
   _cheetah3LoadIndex = 0;
+    _arcdogLoadIndex = 10;
 }
 /*!
  * Load the cheetah 3 model and build the draw list.
@@ -221,6 +229,116 @@ size_t DrawList::addMiniCheetah(Vec4<float> color, bool useOld, bool canHide) {
   //   printf(" [%02d] %d\n", i, _canBeHidden[i]);
   // }
   return j0;
+}
+
+/*!
+ * Load the arcdog model and builds the draw list.
+ * Returns an index number that can later be used to update the position of the
+ * robot.
+ */
+size_t DrawList::addArcdog(Vec4<float> color, bool useOld, bool canHide) {
+
+    size_t i0 = _arcdogLoadIndex;
+    size_t j0 = _nTotal;
+
+    // set model offsets:
+    QMatrix4x4 bodyOffset, eye;
+    QMatrix4x4 abadOffsets[4], upperOffsets[2], lower[2];
+    eye.setToIdentity();
+
+    // body
+    bodyOffset.setToIdentity();
+
+    // hip
+    abadOffsets[0].setToIdentity();  // FR
+
+    abadOffsets[1].setToIdentity();  // FL
+
+    abadOffsets[2].setToIdentity();  // RR
+    abadOffsets[2].rotate(180, 0, 0, 1);
+
+    abadOffsets[3].setToIdentity();  // RL
+    abadOffsets[3].rotate(180, 0, 0, 1);
+
+    // thigh
+    upperOffsets[0].setToIdentity();//right
+
+    upperOffsets[1].setToIdentity();//left
+
+    // calf
+    lower[0].setToIdentity();//right
+
+    lower[1].setToIdentity();//left
+
+    SolidColor bodyColor, abadColor, link1Color, link2Color;
+    bodyColor.rgba = useOld ? Vec4<float>(.2, .2, .2, .3) : color;
+    bodyColor.useSolidColor = true;
+
+    abadColor.rgba = useOld ? Vec4<float>(.2, .2, .2, .3) : color;
+    abadColor.useSolidColor = true;
+
+    link1Color.rgba = useOld ? Vec4<float>(.2, .2, .2, .3) : color;
+    link1Color.useSolidColor = true;
+
+    link2Color.rgba = useOld ? Vec4<float>(.2, .2, .2, .3) : color;
+    link2Color.useSolidColor = true;
+
+    _canBeHidden.push_back(canHide);
+
+    // add objects
+    // Body
+    _objectMap.push_back(i0 + 0);
+    _modelOffsets.push_back(bodyOffset);
+    _kinematicXform.push_back(eye);
+    _instanceColor.push_back(bodyColor);
+    _nTotal++;
+
+    for (int i = 0; i < 4; i++) {
+        //  Hip
+        if (i == 0 || i == 3){  // Diagonals are the same
+            _objectMap.push_back(i0 + 1);
+            _canBeHidden.push_back(canHide);
+            _modelOffsets.push_back(abadOffsets[i]);
+            _kinematicXform.push_back(eye);
+            _instanceColor.push_back(abadColor);
+        } else {
+            _objectMap.push_back(i0 + 2);
+            _canBeHidden.push_back(canHide);
+            _modelOffsets.push_back(abadOffsets[i]);
+            _kinematicXform.push_back(eye);
+            _instanceColor.push_back(abadColor);
+        }
+        if (i%2==0){  //RIGHT
+            //  Thigh
+            _objectMap.push_back(i0 + 3);
+            _canBeHidden.push_back(canHide);
+            _modelOffsets.push_back(upperOffsets[i % 2]);
+            _kinematicXform.push_back(eye);
+            _instanceColor.push_back(link1Color);
+            //  Calf
+            _objectMap.push_back(i0 + 5);
+            _canBeHidden.push_back(canHide);
+            _modelOffsets.push_back(lower[i % 2]);
+            _kinematicXform.push_back(eye);
+            _instanceColor.push_back(link2Color);
+        } else {  //LEFT
+            //  Thigh
+            _objectMap.push_back(i0 + 4);
+            _canBeHidden.push_back(canHide);
+            _modelOffsets.push_back(upperOffsets[i % 2]);
+            _kinematicXform.push_back(eye);
+            _instanceColor.push_back(link1Color);
+            //  Calf
+            _objectMap.push_back(i0 + 6);
+            _canBeHidden.push_back(canHide);
+            _modelOffsets.push_back(lower[i % 2]);
+            _kinematicXform.push_back(eye);
+            _instanceColor.push_back(link2Color);
+        }
+        _nTotal += 3;
+    }
+
+    return j0;
 }
 
 /*!

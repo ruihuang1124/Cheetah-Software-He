@@ -2,6 +2,7 @@
 #include <ControlParameters/ControlParameterInterface.h>
 #include <Dynamics/Cheetah3.h>
 #include <Dynamics/MiniCheetah.h>
+#include <Dynamics/Arcdog.h>
 #include <unistd.h>
 #include "ControlParameters/SimulatorParameters.h"
 
@@ -17,6 +18,8 @@ RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx,
   if (_robotType == RobotType::MINI_CHEETAH) {
     _controlParameters.initializeFromYamlFile(getConfigDirectoryPath() +
                                               MINI_CHEETAH_DEFAULT_PARAMETERS);
+  }else if (_robotType == RobotType::ARCDOG) {
+      _controlParameters.initializeFromYamlFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
   } else if (_robotType == RobotType::CHEETAH_3) {
     _controlParameters.initializeFromYamlFile(getConfigDirectoryPath() +
                                               CHEETAH_3_DEFAULT_PARAMETERS);
@@ -33,8 +36,13 @@ RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx,
   printf("[RobotInterface] Init graphics\n");
   Vec4<float> robotColor;
   robotColor << 0.6, 0.2, 0.2, 1.0;
-  _robotID = _robotType == RobotType::MINI_CHEETAH ? gfx->setupMiniCheetah(robotColor, true, false)
-                                                   : gfx->setupCheetah3(robotColor, true, false);
+    if (_robotType == RobotType::MINI_CHEETAH) {
+        _robotID = gfx->setupMiniCheetah(robotColor, true, false);
+    } else if (_robotType == RobotType::ARCDOG) {
+        _robotID = gfx->setupArcdog(robotColor, true, false);
+    } else {
+        _robotID = gfx->setupCheetah3(robotColor, true, false);
+    }
   printf("draw list has %lu items\n", _gfx->_drawList._kinematicXform.size());
   _gfx->_drawList._visualizationData = &_visualizationData;
   Checkerboard checker(10, 10, 10, 10);
@@ -48,8 +56,13 @@ RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx,
                  &RobotInterface::handleVisualizationData, this);
 
   printf("[RobotInterface] Init dynamics\n");
-  _quadruped = robotType == RobotType::MINI_CHEETAH ? buildMiniCheetah<double>()
-                                                    : buildCheetah3<double>();
+    if (_robotType == RobotType::MINI_CHEETAH) {
+        _quadruped = buildMiniCheetah<double>();
+    } else if (_robotType == RobotType::ARCDOG) {
+        _quadruped = buildArcdog<double>();
+    } else {
+        _quadruped = buildCheetah3<double>();
+    }
   _model = _quadruped.buildModel();
   _simulator = new DynamicsSimulator<double>(_model, false);
   DVec<double> zero12(12);

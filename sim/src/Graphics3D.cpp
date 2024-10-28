@@ -133,6 +133,12 @@ size_t Graphics3D::setupCheetah3(Vec4<float> color, bool useOld, bool canHide) {
 size_t Graphics3D::setupMiniCheetah(Vec4<float> color, bool useOld, bool canHide) { return _drawList.addMiniCheetah(color, useOld, canHide); }
 
 /*!
+ * Configure the window for displaying arcdog
+ */
+size_t Graphics3D::setupArcdog(Vec4<float> color, bool useOld, bool canHide) { return _drawList.addArcdog(color, useOld, canHide); }
+
+
+/*!
  * Update the camera matrix for the current zoom/orbit
  */
 

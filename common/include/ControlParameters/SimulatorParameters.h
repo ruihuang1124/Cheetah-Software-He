@@ -14,6 +14,8 @@
 #define SIMULATOR_DEFAULT_PARAMETERS "/simulator-defaults.yaml"
 #define MINI_CHEETAH_DEFAULT_PARAMETERS "/mini-cheetah-defaults.yaml"
 #define CHEETAH_3_DEFAULT_PARAMETERS "/cheetah-3-defaults.yaml"
+#define ARCDOG_DEFAULT_PARAMETERS "/arcdog-robot-parameters.yaml"
+#define MINI_ARCDOG_DEFAULT_PARAMETERS "/mini-arcdog-robot-parameters.yaml"
 
 /*!
  * Simulator specific control parameters

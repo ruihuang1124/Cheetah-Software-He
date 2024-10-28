@@ -3,4 +3,5 @@
 add_subdirectory(MIT_Controller)
 #add_subdirectory(MiniCheetahSpi_Controller)
 add_subdirectory(Imitation_Controller)
+add_subdirectory(Follow_Trajectory_Controller)
 #add_subdirectory(ND_Controller)

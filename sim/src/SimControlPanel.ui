@@ -95,6 +95,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QRadioButton" name="ArcdogButton">
+            <property name="text">
+             <string>Arcdog</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QRadioButton" name="miniCheetahButton">
             <property name="text">
              <string>Mini Cheetah</string>

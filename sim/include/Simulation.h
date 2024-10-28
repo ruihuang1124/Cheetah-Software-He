@@ -12,6 +12,7 @@
 #include "Dynamics/Cheetah3.h"
 #include "Dynamics/MiniCheetah.h"
 #include "Dynamics/Quadruped.h"
+#include "Dynamics/Arcdog.h"
 #include "Graphics3D.h"
 #include "SimUtilities/ImuSimulator.h"
 #include "SimUtilities/SimulatorMessage.h"
