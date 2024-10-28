@@ -33,8 +33,8 @@ public:
 //        use_optimized_force_ = true;
         // Setup reference
 //        string imitation_path = "../user/Imitation_Controller/PolicyRollout/In-place-trot/A1/";
-//         string imitation_path = "../user/Imitation_Controller/PolicyRollout/test/";
-         string imitation_path = "/home/ray/log/";
+         string imitation_path = "../user/Imitation_Controller/PolicyRollout/test/";
+//         string imitation_path = "/home/ray/log/";
 
 
 //       string imitation_path = "../user/Imitation_Controller/PolicyRollout/trot/a1/";
@@ -44,10 +44,10 @@ public:
 
 //        string contact_fname = imitation_path + "contact_post_arcdog_81.csv";
 //        string state_fname = imitation_path + "state_post_arcdog_81.csv";
-//        string contact_fname = imitation_path + "contact_post.csv";
-//        string state_fname = imitation_path + "state_post.csv";
-        string contact_fname = imitation_path + "contact_post_mini_cheetah.csv";
-        string state_fname = imitation_path + "state_post_mini_cheetah.csv";
+        string contact_fname = imitation_path + "contact_post.csv";
+        string state_fname = imitation_path + "state_post.csv";
+//        string contact_fname = imitation_path + "contact_post_mini_cheetah.csv";
+//        string state_fname = imitation_path + "state_post_mini_cheetah.csv";
 //        string contact_fname = imitation_path + "contact_post_arcdog.csv";
 //        string state_fname = imitation_path + "state_post_arcdog.csv";
         imitation_ref.load_contact_data(contact_fname);

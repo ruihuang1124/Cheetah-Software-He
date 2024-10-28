@@ -152,7 +152,7 @@ bool MSMultiPhaseDDP<T>::forward_iteration(HSDDP_OPTION &option)
 {
     expect_cost_change = 0;
     T eps = 1;
-    T cost_prev = actual_cost;
+//    T cost_prev = actual_cost;
     bool success = false;
 #ifdef TIME_BENCHMARK
     fit_iter = 0;
@@ -245,11 +245,11 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
         update_nominal_trajectory();
         T regularization = 0;
         iter_in = 0;
-        defect_weight = 1;
+        defect_weight = 15;
         merit = 0;
         merit_prev = 0;
-        T rho = 0.2;
-        T min_defect_weight = 2;
+        T rho = 0.5;
+        T min_defect_weight = 10;
         while (iter_in < option.max_DDP_iter)
         {
             iter_in++;
@@ -272,6 +272,7 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
             // initial cost is cost_prev
             // update defect_weight with dnorm, expect_cost_change, rho, current_defect_weight
             defect_weight = update_defect_weight(expect_cost_change,total_defection_norm_prev, rho, defect_weight, min_defect_weight);
+            ::printf("the defect_weight is: %.3e\n",defect_weight);
 
             // initial merit
             merit_prev = cost_prev + defect_weight * total_defection_norm_prev;
@@ -301,7 +302,12 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
 #endif
             // If cost change small, accept the DDP solution
             if (cost_prev - actual_cost < option.DDP_thresh)
+            {
+                printf("actual cost is: %.3e \t cost_prev  is: %.3e \t and cost decrease is: %.3e \n", actual_cost, cost_prev, cost_prev - actual_cost);
+                printf("ddp terminate for cost change small reason \n");
                 break;
+            }
+
 
 #ifdef TIME_BENCHMARK
             start = high_resolution_clock::now();
@@ -344,7 +350,7 @@ void MSMultiPhaseDDP<T>::solve(HSDDP_OPTION option)
     }
     if (iter_ou >= option.max_AL_iter)
     {
-        printf("maximum iteration reached \n");
+        printf("maximum AL iteration reached \n");
     }
     
     printf("total cost = %f \n", actual_cost);
@@ -431,13 +437,14 @@ void MSMultiPhaseDDP<T>::update_nominal_trajectory()
 template <typename T>
 T MSMultiPhaseDDP<T>::update_defect_weight(T cost_first_order, T defect_norm, T pho, T weight_prev, T min_weight) {
     if (defect_norm == 0) {
+        ::printf("defect_norm is zero, keep weight_prev\n");
         return weight_prev;
     }
 
-    double exp_change_abs = std::abs(cost_first_order);
-    double thresh = 10 + exp_change_abs / ((1 - pho) * defect_norm);
+    T exp_change_abs = std::abs(cost_first_order);
+    T thresh = 10 + exp_change_abs / ((1 - pho) * defect_norm);
 
-    double weight = (weight_prev >= thresh) ? weight_prev : thresh;
+    T weight = (weight_prev >= thresh) ? weight_prev : thresh;
 
     return std::max(min_weight, weight);
 }

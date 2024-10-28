@@ -95,7 +95,7 @@ void MPC_MSDDP_Solver<T>::update() {
 
     // use less iterations when resolving DDP
     ddp_options.max_AL_iter = 2;
-    ddp_options.max_DDP_iter = 2;
+    ddp_options.max_DDP_iter = 3;
     mpc_iter++;
 
     printf("************************************* \n");

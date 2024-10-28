@@ -204,7 +204,9 @@ void Imitation_Controller::locomotion_ctrl()
     {
         for (int i = 0; i < 4; i++)
         {
-            footSwingTrajectories[i].setHeight(0.02);
+//            footSwingTrajectories[i].setHeight(0.05);
+//            footSwingTrajectories[i].setHeight(0.02);
+            footSwingTrajectories[i].setHeight(0.10);
             footSwingTrajectories[i].setInitialPosition(pFoot[i]);
             footSwingTrajectories[i].setFinalPosition(pFoot[i]);
         }
@@ -213,8 +215,11 @@ void Imitation_Controller::locomotion_ctrl()
     }
     for (int i = 0; i < 4; i++)
     {
-        // footSwingTrajectories[i].setHeight(0.06);
-        footSwingTrajectories[i].setHeight(0.08);
+//         footSwingTrajectories[i].setHeight(0.12);
+//        footSwingTrajectories[i].setHeight(0.25);
+//        footSwingTrajectories[i].setHeight(0.08);
+        footSwingTrajectories[i].setHeight(0.15);
+
         // footSwingTrajectories[i].setFinalPosition(pf[i]);
 
         // if the leg is in swing
@@ -392,7 +397,7 @@ void Imitation_Controller::get_a_val_from_solution_bag()
         {
             if (mpc_time < mpc_cmds.mpc_times[i + 1])
             {
-//                printf("Updating mpc command!!!!!!!!!!!!!! with step %d\n",i);
+                printf("Updating mpc command!!!!!!!!!!!!!! with step %d\n",i);
                 mpc_control = mpc_control_bag[i];
                 break;
             }

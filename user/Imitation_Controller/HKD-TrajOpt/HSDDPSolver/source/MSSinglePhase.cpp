@@ -158,6 +158,7 @@ void MSSinglePhase<T,xs,us,ys>::forward_sweep(T eps, HSDDP_OPTION &option, bool 
         }
         if (calc_partial)
         { // This flag is turned off when performing line search for speed up
+//            ::printf("here calculating partial\n");
             dynamics_partial(A->at(k), B->at(k), C->at(k), D->at(k), X->at(k), U->at(k));
         }
         /* compute running cost*/
