@@ -61,6 +61,8 @@ MHPC_LLController::MHPC_LLController() :
         stanceTimes[foot] = 0;
         stanceTimesRemain[foot] = 0;
     }
+    x_des.resize(36);
+    x_se.resize(36);
 }
 void MHPC_LLController::initializeController()
 {
@@ -318,13 +320,13 @@ void MHPC_LLController::resolveMPCIfNeeded()
     {
         const auto &se = _stateEstimator->getResult();
     
-        std::copy(se.position.begin(), se.position.end(), mpc_data.pos);
-        std::copy(eul_se.begin(), eul_se.end(), mpc_data.eul);
-        std::copy(se.vWorld.begin(), se.vWorld.end(), mpc_data.vWorld);
-        std::copy(eulrate_se.begin(), eulrate_se.end(), mpc_data.eulrate);    
+        std::copy(se.position.data(), se.position.data() + se.position.size(), mpc_data.pos);
+        std::copy(eul_se.data(), eul_se.data() + eul_se.size(), mpc_data.eul);
+        std::copy(se.vWorld.data(), se.vWorld.data() + se.vWorld.size(), mpc_data.vWorld);
+        std::copy(eulrate_se.data(), eulrate_se.data() + eulrate_se.size(), mpc_data.eulrate);
 
-        std::copy(qJ_se.begin(), qJ_se.end(), mpc_data.qJ);
-        std::copy(qJd_se.begin(), qJd_se.end(), mpc_data.qJd);
+        std::copy(qJ_se.data(), qJ_se.data() + qJ_se.size(), mpc_data.qJ);
+        std::copy(qJd_se.data(), qJd_se.data() + qJd_se.size(), mpc_data.qJd);
 
         mpc_data.mpctime = mpc_time;
         mpc_data_lcm.publish("MHPC_DATA", &mpc_data);
@@ -489,8 +491,8 @@ void MHPC_LLController::applyVelocityDisturbance()
         const Vec3<float> kick_angular = userParameters.kick_angular.cast<float>()/kick_count;
         
         // std::cout << "kick disturbance = " << kick_linear.transpose() << "\n";
-        std::copy(kick_linear.begin(), kick_linear.end(), kick_lcmt.linear);
-        std::copy(kick_angular.begin(), kick_angular.end(), kick_lcmt.angular);
+        std::copy(kick_linear.data(), kick_linear.data() + kick_linear.size(), kick_lcmt.linear);
+        std::copy(kick_angular.data(), kick_angular.data() + kick_angular.size(), kick_lcmt.angular);
 
         utility_lcm.publish("ext_force", &kick_lcmt);
 

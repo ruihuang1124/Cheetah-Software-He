@@ -63,6 +63,9 @@ Tracking_Controller::Tracking_Controller() :
         stanceTimes[foot] = 0;
         stanceTimesRemain[foot] = 0;
     }
+
+    x_des.resize(36);
+    x_se.resize(36);
 }
 void Tracking_Controller::initializeController()
 {
@@ -426,22 +429,22 @@ void Tracking_Controller::publishTrackingInfo()
 {
     debug_tracking_lcmt debug_data;
     debug_data.time = mpc_time;
-    std::copy(mpc_solution.torque.begin(), mpc_solution.torque.end(), &debug_data.tau[0]);
-    std::copy(contactStatus.begin(), contactStatus.end(), &debug_data.contact[0]);
-    std::copy(mpc_solution.pos.begin(), mpc_solution.pos.end(), &debug_data.pos_des[0]);
-    std::copy(mpc_solution.eul.begin(), mpc_solution.eul.end(), &debug_data.eul_des[0]);
-    std::copy(mpc_solution.qJ.begin(), mpc_solution.qJ.end(), &debug_data.qJ_des[0]);
-    std::copy(mpc_solution.vWorld.begin(), mpc_solution.vWorld.end(), &debug_data.vWorld_des[0]);
-    std::copy(mpc_solution.eulrate.begin(), mpc_solution.eulrate.end(), &debug_data.eulrate_des[0]);
-    std::copy(mpc_solution.qJd.begin(), mpc_solution.qJd.end(), &debug_data.qJd_des[0]);
+    std::copy(mpc_solution.torque.data(), mpc_solution.torque.data() + mpc_solution.torque.size(), &debug_data.tau[0]);
+    std::copy(contactStatus.data(), contactStatus.data() + contactStatus.size(), &debug_data.contact[0]);
+    std::copy(mpc_solution.pos.data(), mpc_solution.pos.data() + mpc_solution.pos.size(), &debug_data.pos_des[0]);
+    std::copy(mpc_solution.eul.data(), mpc_solution.eul.data() + mpc_solution.eul.size(), &debug_data.eul_des[0]);
+    std::copy(mpc_solution.qJ.data(), mpc_solution.qJ.data() + mpc_solution.qJ.size(), &debug_data.qJ_des[0]);
+    std::copy(mpc_solution.vWorld.data(), mpc_solution.vWorld.data() + mpc_solution.vWorld.size(), &debug_data.vWorld_des[0]);
+    std::copy(mpc_solution.eulrate.data(), mpc_solution.eulrate.data() + mpc_solution.eulrate.size(), &debug_data.eulrate_des[0]);
+    std::copy(mpc_solution.qJd.data(), mpc_solution.qJd.data() + mpc_solution.qJd.size(), &debug_data.qJd_des[0]);
 
     const auto &se = _stateEstimator->getResult();
-    std::copy(se.position.begin(), se.position.end(), &debug_data.pos[0]);
-    std::copy(eul_se.begin(), eul_se.end(), &debug_data.eul[0]);
-    std::copy(qJ_se.begin(), qJ_se.end(), &debug_data.qJ[0]);
-    std::copy(se.vWorld.begin(), se.vWorld.end(), &debug_data.vWorld[0]);
-    std::copy(eulrate_se.begin(), eulrate_se.end(), &debug_data.eulrate[0]);
-    std::copy(qJd_se.begin(), qJd_se.end(), &debug_data.qJd[0]);
+    std::copy(se.position.data(), se.position.data() + se.position.size(), &debug_data.pos[0]);
+    std::copy(eul_se.data(), eul_se.data() + eul_se.size(), &debug_data.eul[0]);
+    std::copy(qJ_se.data(), qJ_se.data() + qJ_se.size(), &debug_data.qJ[0]);
+    std::copy(se.vWorld.data(), se.vWorld.data() + se.vWorld.size(), &debug_data.vWorld[0]);
+    std::copy(eulrate_se.data(), eulrate_se.data() + eulrate_se.size(), &debug_data.eulrate[0]);
+    std::copy(qJd_se.data(), qJd_se.data() + qJd_se.size(), &debug_data.qJd[0]);
 
     utility_lcm.publish("DEBUG_TRACKING", &debug_data);
 }
@@ -458,8 +461,8 @@ void Tracking_Controller::applyVelocityDisturbance()
         const Vec3<float> kick_angular = userParameters.kick_angular.cast<float>()/kick_count;
         
         // std::cout << "kick disturbance = " << kick_linear.transpose() << "\n";
-        std::copy(kick_linear.begin(), kick_linear.end(), kick_lcmt.linear);
-        std::copy(kick_angular.begin(), kick_angular.end(), kick_lcmt.angular);
+        std::copy(kick_linear.data(), kick_linear.data() + kick_linear.size(), kick_lcmt.linear);
+        std::copy(kick_angular.data(), kick_angular.data() + kick_angular.size(), kick_lcmt.angular);
 
         utility_lcm.publish("ext_force", &kick_lcmt);
 

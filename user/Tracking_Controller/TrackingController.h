@@ -105,7 +105,7 @@ public:
     Vec12<float> qJ_des;
     Vec12<float> qJd_des;   
     Vec18<float> qdd_des_;
-    Eigen::Vector<float, 36> x_des;
+    Eigen::VectorXf x_des;
 
     // Q matrices and feedback gain
     Vec12<float> Qu_mpc;
@@ -117,7 +117,7 @@ public:
     Vec3<float> eulrate_se;
     Vec12<float> qJ_se;
     Vec12<float> qJd_se;
-    Eigen::Vector<float, 36> x_se;
+    Eigen::VectorXf x_se;
     
     // Swing Control
     bool firstStance[4];
